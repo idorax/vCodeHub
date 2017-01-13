@@ -1,3 +1,7 @@
+#
+# Copyright (C) 2017, Vector Li (idorax@126.com)
+#
+
 CC	= gcc
 CFLAGS	= -g -Wall
 
@@ -17,4 +21,4 @@ clean:
 	rm -f *.o
 clobber: clean
 	rm -f ${TARGET}
-clr: clobber
+cl: clobber

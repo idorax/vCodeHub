@@ -1,8 +1,23 @@
+/*
+ * Copyright (C) 2017, Vector Li (idorax@126.com)
+ */
+
+/**
+ * Basic Binary Sort Tree (BST) OPs are supported, including:
+ *
+ * 1. Construct and destruct a BST
+ * 2. Walk the whole BST (pre-order, in-order, post-order)
+ * 3. Add, delete and search a node
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 #include "libbst.h"
 
+/*
+ * Private debug function
+ */
 static boolean_t debug = B_FALSE;
 #define DEBUG(a) { if (debug) a; }
 
@@ -14,13 +29,9 @@ get_debug()
 		debug = B_TRUE;
 }
 
-//
-// OPs: 1. Init a BST and Fini a BST
-//      2. Walk the whole BST (pre-order, in-order, post-order)
-//      3. Add, delete and search a node
-//
-
-// -1- 1.1 Init a BST ----------------------------------------------------------
+/*
+ * Construct a BST
+ */
 int
 bst_init(bst_node_t **root, key_t a[], size_t n)
 {
@@ -40,7 +51,10 @@ bst_init(bst_node_t **root, key_t a[], size_t n)
 	return 0;
 }
 
-// -2- 1.2 Fini a BST ----------------------------------------------------------
+/*
+ * Destruct a BST
+ */
+
 static inline void
 BST_DESTROY_NODE(bst_node_t *p)
 {
@@ -69,7 +83,9 @@ bst_fini(bst_node_t *root)
 	free(root);
 }
 
-// -2- Walk a BST --------------------------------------------------------------
+/*
+ * Walk a BST
+ */
 void
 bst_walk(bst_node_t *root, walk_order_t order)
 {
@@ -127,16 +143,12 @@ bst_walk(bst_node_t *root, walk_order_t order)
 	}
 }
 
-// -3- 3.1 Add a BST node  -----------------------------------------------------
-
 /*
  * Add node to BST recursively
  */
 void
 bst_add_node(bst_node_t **root, key_t key)
 {
-	DEBUG(printf("DEBUG1: %s\tis called (key=%3d)\n", __func__, key));
-
 	if (*root == NULL) {
 		bst_node_t *leaf = NULL;
 		leaf = (bst_node_t *)malloc(sizeof (bst_node_t));
@@ -167,8 +179,6 @@ bst_add_node(bst_node_t **root, key_t key)
 int
 bst_add_node2(bst_node_t **root, key_t key)
 {
-	DEBUG(printf("DEBUG2: %s\tis called (key=%3d)\n", __func__, key));
-
 	bst_node_t *leaf = NULL;
 	leaf = (bst_node_t *)malloc(sizeof (bst_node_t));
 	if (leaf == NULL) {
@@ -182,7 +192,7 @@ bst_add_node2(bst_node_t **root, key_t key)
 	leaf->right = NULL;
 
 	/* add leaf node to root */
-	if (*root == NULL) {	/* root node does not exit */
+	if (*root == NULL) { /* root node does not exit */
 		*root = leaf;
 	} else {
 		bst_node_t **pp = NULL;
@@ -204,7 +214,9 @@ bst_add_node2(bst_node_t **root, key_t key)
 	return 0;
 }
 
-// -3- 3.2 Delete a BST node  --------------------------------------------------
+/**
+ * Delete a node from BST
+ */
 
 static inline bst_node_t *
 bst_get_leftmost_leaf(bst_node_t *root)
@@ -219,11 +231,8 @@ bst_get_leftmost_leaf(bst_node_t *root)
 	return p;
 }
 
-/*
- * Delete a node from BST
- */
 int
-bst_del_node2(bst_node_t **root, key_t key)
+bst_del_node(bst_node_t **root, key_t key)
 {
 	bst_node_t *parent = NULL;
 	bst_node_t *this = bst_search3(*root, key, &parent);
@@ -464,7 +473,9 @@ bst_del_node2(bst_node_t **root, key_t key)
 }
 
 
-// -3- 3.3 Search a BST node  --------------------------------------------------
+/**
+ * Search a node from BST
+ */
 
 /*
  * Search the node having key from BST recursively
@@ -472,14 +483,10 @@ bst_del_node2(bst_node_t **root, key_t key)
 bst_node_t *
 bst_search(bst_node_t *root, key_t key)
 {
-	DEBUG(printf("DEBUG1: %s\tis called (key=%3d)\n", __func__, key));
-
 	if (root == NULL)
 		return NULL;
 
 	if (key == root->key) {
-		DEBUG(printf("DEBUG2: key=%d %p %d %p %p\n",
-		    key, root, root->key, root->left, root->right));
 		return root;
 	}
 
@@ -495,12 +502,8 @@ bst_search(bst_node_t *root, key_t key)
 bst_node_t *
 bst_search2(bst_node_t *root, key_t key)
 {
-	DEBUG(printf("DEBUG1: %s\tis called (key=%3d)\n", __func__, key));
-
 	while (root != NULL) {
 		if (key == root->key) {
-			DEBUG(printf("DEBUG2: key=%d %p %d %p %p\n",
-			    key, root, root->key, root->left, root->right));
 			return root;
 		}
 
@@ -513,16 +516,14 @@ bst_search2(bst_node_t *root, key_t key)
 	return NULL;
 }
 
+/*
+ * Search the node having key from BST and also get its parent
+ */
 bst_node_t *
 bst_search3(bst_node_t *root, key_t key, bst_node_t **parent)
 {
-	DEBUG(printf("DEBUG1: %s\tis called (key=%3d)\n", __func__, key));
-
 	while (root != NULL) {
 		if (key == root->key) {
-			DEBUG(printf("DEBUG2: key=%d %p %d %p %p\n",
-			    key, root, root->key, root->left, root->right));
-
 			/* set the top root node */
 			if (*parent == NULL)
 				*parent = root;
@@ -542,6 +543,10 @@ bst_search3(bst_node_t *root, key_t key, bst_node_t **parent)
 
 /*
  * Find the Kth node from BST, k = 1, 2, ...
+ *
+ * XXX: I'm not satisfied with current implementation yet because
+ *      the returned code is not reliable to judge a key is found
+ *      or not.
  */
 int
 bst_find(bst_node_t *root, key_t *key, int k)
@@ -552,9 +557,7 @@ bst_find(bst_node_t *root, key_t *key, int k)
 	if (root->left != NULL && k > 0)
 		k = bst_find(root->left, key, k);
 
-	DEBUG(printf("DEBUG: %p key=%d k=%d\n", root, root->key, k));
 	if (--k == 0) {
-		printf("\t\tFound %p key=%d <-- GOOD\n", root, root->key);
 		*key = root->key;
 		return 0;
 	}

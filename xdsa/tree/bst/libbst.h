@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2017, Vector Li (idorax@126.com)
+ */
+
 #ifndef _LIBBST_H
 #define _LIBBST_H
 
@@ -24,22 +28,22 @@ typedef enum walk_order_s {
 	WALK_ORDER_POST		/* left -> right -> root */
 } walk_order_t;
 
-void	bst_walk(bst_node_t *root, walk_order_t order);
-int	bst_init(bst_node_t **root, key_t a[], size_t n);
-void	bst_fini(bst_node_t *root);
+void bst_walk(bst_node_t *root, walk_order_t order);
+int bst_init(bst_node_t **root, key_t a[], size_t n);
+void bst_fini(bst_node_t *root);
 
-void	bst_add_node(bst_node_t **root, key_t key);
-int	bst_add_node2(bst_node_t **root, key_t key);
+void bst_add_node(bst_node_t **root, key_t key);
+int bst_add_node2(bst_node_t **root, key_t key);
 
-int	bst_del_node2(bst_node_t **root, key_t key);
+int bst_del_node(bst_node_t **root, key_t key);
 
 bst_node_t *bst_search(bst_node_t *root, key_t key);
 bst_node_t *bst_search2(bst_node_t *root, key_t key);
 bst_node_t *bst_search3(bst_node_t *root, key_t key, bst_node_t **parent);
 
-int	bst_find(bst_node_t *root, key_t *key, int k);
+int bst_find(bst_node_t *root, key_t *key, int k);
 
-void	get_debug();
+void get_debug();
 
 #ifdef	__cplusplus
 }

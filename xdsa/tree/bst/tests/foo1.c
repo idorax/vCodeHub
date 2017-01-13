@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2017, Vector Li (idorax@126.com)
+ */
+
+/**
+ * foo1.c : Test case to verify bst_del_node() works fine.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "../libbst.h"
@@ -12,8 +20,6 @@ main(int argc, char *argv[])
 
 	key_t key = atoi(argv[1]);
 
-	printf("To delete %d\n", key);
-
 	get_debug(); /* Note ENV is DEBUG */
 
 	bst_node_t *root = NULL;
@@ -23,16 +29,19 @@ main(int argc, char *argv[])
 
 	bst_init(&root, a, n);
 
-	if (key == -1) {
+	if (key == -1) { /* delete all */
+		bst_walk(root, WALK_ORDER_IN); printf("\n");
+
 		int i;
 		for (i = 0; i < n; i++) {
-			bst_del_node2(&root, a[i]);
+			bst_del_node(&root, a[i]);
 			bst_walk(root, WALK_ORDER_IN); printf("\n");
 		}
 	} else {
-			bst_walk(root, WALK_ORDER_IN); printf("\n");
-			bst_del_node2(&root, key);
-			bst_walk(root, WALK_ORDER_IN); printf("\n");
+		printf("To delete node whose key=%d\n", key);
+		bst_walk(root, WALK_ORDER_IN); printf("\n");
+		bst_del_node(&root, key);
+		bst_walk(root, WALK_ORDER_IN); printf("\n");
 	}
 
 	bst_fini(root);
