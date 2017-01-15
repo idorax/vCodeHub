@@ -1,0 +1,304 @@
+#!/usr/bin/expect
+#
+# Copyright (C) 2015, Vector Li (idorax@126.com)
+#
+
+#
+# vsu - Very handy "su - user" without inputing password explicitly
+#       by trying to login with per common password one by one
+#       and init your bashrc if you have set env VLOGIN_BASHRC
+#
+
+set g_name   "[lindex [split $argv0 /] end]"
+set g_desc   "Light utility to su - user for you"
+set g_vers   "1.0"
+set g_auth   "Vector <idorax@126.com>"
+set g_date   "08/01/2015"
+set g_memo1a "If you hate to input the default password(s),"
+set g_memo1b "please never hesitate to have a try!!"
+
+################################################################################
+# Global variables
+################################################################################
+
+set B_TRUE  1
+set B_FALSE 0
+
+set DEF_TIMEOUT 120
+
+set ENV_ISATTY "VLOGIN_ISATTY" ;# use the same env to vlogin
+set ENV_BASHRC "VLOGIN_BASHRC" ;# use the same env to vlogin
+set DEF_ISATTY "YES"
+set DEF_BASHRC "/your/bashrc"  ;# for usage
+
+set DEFAULT_USER      "root"
+set DEFAULT_PASSWORDS {passwd1 passwd2}
+
+################################################################################
+# Public functions
+################################################################################
+
+#
+# get env value, if not found, return ""
+#
+proc getenv {name} {
+	if {[catch {set val $::env($name)}]} {
+		set val ""
+	}
+	return $val
+}
+
+#
+# set env, the same as export in bash/ksh
+#
+proc setenv {name value} {
+	array set ::env [list $name $value]
+}
+
+#
+# dump all env
+#
+proc dumpenv {} {
+	foreach i [array names ::env] {
+		puts "_ENV_: $i=$::env($i)"
+	}
+}
+
+#
+# bogus isatty as *I have no idea how to detect isatty() in Tcl yet*
+#
+proc isatty {} {
+	set s [string toupper [getenv $::ENV_ISATTY]]
+	if {$s == "YES"} {
+		return $::B_TRUE
+	}
+	return $::B_FALSE
+}
+
+#
+# str2<color> : {gray, red, green, yellow, blue, magenta, cyan, white}
+#
+proc str2gray {s} {
+	if {[isatty]} {
+		return "\033\[1;30m$s\033\[0m"
+	}
+	return $s
+}
+proc str2red {s} {
+	if {[isatty]} {
+		return "\033\[1;31m$s\033\[0m"
+	}
+	return $s
+}
+
+proc str2green {s} {
+	if {[isatty]} {
+		return "\033\[1;32m$s\033\[0m"
+	}
+	return $s
+}
+proc str2yellow {s} {
+	if {[isatty]} {
+		return "\033\[1;33m$s\033\[0m"
+	}
+	return $s
+}
+proc str2blue {s} {
+	if {[isatty]} {
+		return "\033\[1;34m$s\033\[0m"
+	}
+	return $s
+}
+proc str2magenta {s} {
+	if {[isatty]} {
+		return "\033\[1;35m$s\033\[0m"
+	}
+	return $s
+}
+proc str2cyan {s} {
+	if {[isatty]} {
+		return "\033\[1;36m$s\033\[0m"
+	}
+	return $s
+}
+proc str2white {s} {
+	if {[isatty]} {
+		return "\033\[1;37m$s\033\[0m"
+	}
+	return $s
+}
+
+#
+# msg_* : {fail, pass, warn, info}
+#
+proc msg_fail {s} { puts stderr [str2red     "\[ FAIL \] $s"]; }
+proc msg_pass {s} { puts stdout [str2cyan    "\[ PASS \] $s"]; }
+proc msg_warn {s} { puts stderr [str2magenta "\[ WARN \] $s"]; }
+proc msg_info {s} { puts stderr [str2green   "\[ INFO \] $s"]; }
+
+# get nchars like python c * n, e.g. "#" * 3 == "###"
+proc str_cxn  {c n} { return [string repeat $c $n]; }
+
+# str{L|M|R} <char> <width> <string>
+proc strL {c w s} { return [_strX "L" $c $w $s]; }
+proc strM {c w s} { return [_strX "M" $c $w $s]; }
+proc strR {c w s} { return [_strX "R" $c $w $s]; }
+proc _strX {align char width s} {
+	set sz [string length $s]
+	set n  [expr {$width - $sz}]
+	if {$align == "L"} {
+		set s1 "$s[str_cxn $char $n]"
+	} elseif {$align == "R"} {
+		set s1 "[str_cxn $char $n]$s"
+	} elseif {$align == "M"} {
+		set n [expr {$n / 2}]
+		set s1 "[str_cxn $char $n]$s"
+		set sz [string length $s1]
+		set n [expr {$width - $sz}]
+		set s1 "$s1[str_cxn $char $n]"
+	} else {
+		set s1 $s
+	}
+
+	return $s1
+}
+
+#
+# get a random integer between m and M
+#
+proc random {m M} {
+	return [expr $m + round(rand() * ($M - $m))]
+}
+
+################################################################################
+# Private functions
+################################################################################
+
+#
+# init your bash on your Solaris or Linux
+#
+proc bash_init {user} {
+	set bashrc "$::dst_bashrc"
+	set tmpdir "/tmp"
+
+	#
+	# NOTE: too many send may not be finished !!!
+	#       so, the less send, the better
+	#
+	send "exec bash\r"
+	send "set -x; . $bashrc; set +x\r" ;# your bashrc must be harmless
+	send "trap \"rm -f $bashrc\" EXIT\r"
+	send "ls -l $tmpdir\rcd /tmp\r\r\r"
+	send "clear\r\runame -a\r\rdate\r\r"
+}
+
+proc usage {p} {
+	# header
+	set tab "[str_cxn " " 8]"
+	set l1 "[str_cxn {*} 80]"
+	set l2 "* [strM " " 76 "$::g_desc"] *"
+	set l3 "* [strM " " 76 "$::g_name v$::g_vers"] *"
+	set l4 "* [str_cxn " " 76] *"
+	set l5 "* [strM " " 76 "If bug found, please contact $::g_auth"] *"
+	set m1 "* [strL " " 76 "$tab $::g_memo1a"] *"
+	set m2 "* [strL " " 76 "$tab$tab $::g_memo1b"] *"
+	foreach s [list $l1 $l2 $l3 $l4 $l5 $l1 $m1 $m2 $l1] {
+		puts stderr [str2yellow $s]
+	}
+
+	# usage and examples
+	set k1 [str2blue $::ENV_BASHRC]
+	set v1 [str2gray $::DEF_BASHRC]
+	puts stderr ""
+	puts stderr "Usage: $p \[<user> <password>] | -h"
+	puts stderr "[str_cxn "-" 80]"
+	puts stderr "NOTE:  default user is $::DEFAULT_USER"
+	puts stderr "       default password is in {$::DEFAULT_PASSWORDS}"
+	puts stderr "[str_cxn "-" 80]"
+	puts stderr ""
+	puts stderr "       If you prefer your private bashrc,\
+			please make sure it is harmless first"
+	puts stderr "       then setenv $k1"
+	puts stderr "       e.g. export $k1=$v1"
+	puts stderr ""
+}
+
+################################################################################
+# main()
+################################################################################
+
+# init default isatty if user does not set it
+if {[getenv $ENV_ISATTY] == ""} {
+	setenv $ENV_ISATTY $DEF_ISATTY
+}
+
+if {$argc > 0 && $argc != 2} {
+	usage $argv0
+	exit 1
+}
+
+if {$argc == 2} {
+	set user [lindex $argv 0]
+	set pwds [lindex $argv 1]
+} else {
+	set user $DEFAULT_USER
+	set pwds $DEFAULT_PASSWORDS
+}
+
+# setup dst bashrc, and enable regular user to delete it
+set s1 [exec bash -c "id -un"]
+set s2 [format "%X" [clock seconds]][format "%04X" [random 0x0001 0xFFFF]]
+set stamp "$s1.$s2"
+set dst_tmpdir "/tmp"
+set dst_bashrc "$dst_tmpdir/$stamp.bashrc"
+set env_bashrc [getenv $ENV_BASHRC]
+exec bash -c "touch $dst_bashrc" ;# create dst bashrc file
+if {$env_bashrc != "" && [file exists $env_bashrc]} {
+	msg_info "$ENV_BASHRC=$env_bashrc"
+	file copy -force $env_bashrc $dst_bashrc ;# always copy
+}
+file attributes $dst_bashrc -permissions 0777
+
+# Now spawn su - <user> to try password one by one
+set timeout $DEF_TIMEOUT
+set flag $B_FALSE
+set password ""
+foreach password [split $pwds] {
+	puts "*** Try password [str2gray $password] ***"
+	spawn su - $user
+	expect {
+		-nocase "password: " {
+			sleep 0.1
+			send "$password\r"
+			exp_continue
+		}
+
+		-re "Authentication failed|Sorry" {
+			msg_fail "*** invalid password ?\n"
+			continue
+		}
+
+		-re "\\\$|]|#|>|% " {
+			msg_info "*** Bingo, password of $user is $password"
+			sleep 0.5
+			set flag $B_TRUE
+			bash_init $user ;#then goto interact
+			break
+		}
+
+		timeout {
+			msg_fail "*** Time out"
+			continue
+		}
+	}
+}
+
+if {$flag == $B_FALSE} {
+	msg_fail "Oops, valid password in {$pwds} not found"
+	if {[file exists $dst_bashrc]} {
+		file delete $dst_bashrc
+	}
+	exit 1
+}
+
+interact
