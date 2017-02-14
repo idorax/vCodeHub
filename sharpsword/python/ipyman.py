@@ -1,17 +1,13 @@
 #!/usr/bin/python
 #
-# Copyright (C) 2015, Vector Li (idorax@126.com)
+# Copyright (C) 2015, 2017, Vector Li (idorax@126.com)
 #
 
 """
-py_helper - Helper utility to review not only module but also built-in class.
+ipyman - Handy utility to review not only module but also built-in class.
 
-sys, os, logging, ... are modules
-int, float, ..., list, tuple, dict, ... are classes.
-
-Version : 1.2
-Date    : 11/06/2015
-Author  : Vector Li<idorax@126.com>
+         sys, os, logging, ... are modules
+         int, float, ..., list, tuple, dict, ... are classes.
 """
 
 import sys
