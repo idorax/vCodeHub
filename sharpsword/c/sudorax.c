@@ -37,8 +37,8 @@ typedef unsigned long long uint64_t;
 typedef unsigned long uint32_t;
 #endif
 
-#define KEY_LEASE	600		/* lease of encoded password */
-#define BUF_SIZE	(1024 * 1024)	/* 1M */
+#define KEY_LEASE	600		/* lease of encoded text */
+#define BUF_SIZE	(1024 * 1024)	/* 1M by default */
 #ifndef MAGICNUM
 #define MAGICNUM	(0x9741)	/* magic num to decode/encode */
 #endif
