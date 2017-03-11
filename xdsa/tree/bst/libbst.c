@@ -35,10 +35,8 @@ get_debug()
 int
 bst_init(bst_node_t **root, key_t a[], size_t n)
 {
-	size_t i;
-
 	*root = NULL;
-	for (i = 0; i < n; i++) {
+	for (size_t i = 0; i < n; i++) {
 		if (i % 2) {
 			int rc;
 			if ((rc = bst_add_node2(root, a[i])) != 0)
@@ -566,4 +564,31 @@ bst_find(bst_node_t *root, key_t *key, int k)
 		k = bst_find(root->right, key, k);
 
 	return k;
+}
+
+/*
+ * Get depth of BST
+ *
+ * NOTE: 1) If BST is empty,           the depth is -1
+ *       2) If BST has root node only, the depth is  0
+ *
+ *                  (a)   ---- Level 0
+ *                  / \
+ *                (b) (c) ---- Level 1
+ *                /
+ *              (d)       ---- Level 2
+ */
+int
+bst_get_depth(bst_node_t *root)
+{
+	if (root == NULL)
+		return -1;
+
+	int left_depth  = 1;
+	int right_depth = 1;
+	left_depth  += bst_get_depth(root->left);
+	right_depth += bst_get_depth(root->right);
+
+	int depth = left_depth > right_depth ? left_depth : right_depth;
+	return depth;
 }

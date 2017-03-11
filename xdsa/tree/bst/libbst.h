@@ -43,6 +43,8 @@ bst_node_t *bst_search3(bst_node_t *root, key_t key, bst_node_t **parent);
 
 int bst_find(bst_node_t *root, key_t *key, int k);
 
+int bst_get_depth(bst_node_t *root);
+
 void get_debug();
 
 #ifdef	__cplusplus
