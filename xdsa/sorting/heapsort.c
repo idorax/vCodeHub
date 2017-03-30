@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017, Vector Li (vlhn@sohu.com). All rights reserved.
+ * Copyright (C) 2017, Vector Li (idorax@126.com). All rights reserved.
  */
 
 #include <stdio.h>
@@ -32,8 +32,8 @@
  *       int getIndexOfLeftChild(i)  { return i * 2 + 1;         }
  *       int getIndexOfRightChild(i) { return i * 2 + 2;         }
  *       int getIndexParent(i)       { return (i - 1) / 2;       }
- *       int hasLeftChild(i)         { return ((i * 2 + 1) < n); }
- *       int hasRightChild(i)        { return ((i * 2 + 2) < n); }
+ *       int hasLeftChild(n, i)      { return ((i * 2 + 1) < n); }
+ *       int hasRightChild(n, i)     { return ((i * 2 + 2) < n); }
  *       int hasParent(i)            { return (i > 0);           }
  *       int isLeafNode(n, i)        { return (i >= n / 2);      }
  */

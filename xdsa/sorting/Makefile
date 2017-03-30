@@ -1,14 +1,15 @@
 #
-# Copyright (C) 2017, Vector Li (vlhn@sohu.com). All rights reserved.
+# Copyright (C) 2017, Vector Li (idorax@126.com). All rights reserved.
 #
 
 CC	= gcc
 CFLAGS	= -g -Wall -std=gnu99 -m32
 INCS	=
 
-TARGET	= heapsort
+TARGETS	= heapsort \
+	  mergesort
 
-all: ${TARGET}
+all: ${TARGETS}
 
 heapsort: heapsort.o
 	${CC} ${CFLAGS} -o $@ $^
@@ -16,8 +17,14 @@ heapsort: heapsort.o
 heapsort.o: heapsort.c
 	${CC} ${CFLAGS} -c $< ${INCS}
 
+mergesort: mergesort.o
+	${CC} ${CFLAGS} -o $@ $^
+
+mergesort.o: mergesort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
 clean:
 	rm -f *.o
 clobber: clean
-	rm -f ${TARGET}
+	rm -f ${TARGETS}
 cl: clobber
