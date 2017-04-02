@@ -7,7 +7,8 @@ CFLAGS	= -g -Wall -std=gnu99 -m32
 INCS	=
 
 TARGETS	= heapsort \
-	  mergesort
+	  mergesort \
+	  radixsort radixsort2
 
 all: ${TARGETS}
 
@@ -21,6 +22,18 @@ mergesort: mergesort.o
 	${CC} ${CFLAGS} -o $@ $^
 
 mergesort.o: mergesort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
+radixsort: radixsort.o
+	${CC} ${CFLAGS} -o $@ $^
+
+radixsort.o: radixsort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
+radixsort2: radixsort2.o
+	${CC} ${CFLAGS} -o $@ $^
+
+radixsort2.o: radixsort2.c
 	${CC} ${CFLAGS} -c $< ${INCS}
 
 clean:

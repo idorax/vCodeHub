@@ -77,8 +77,8 @@ merge(int a[], size_t n, int l, int m, int r)
 	for (int i = l; i <= r; i++)	// erase a[l..r] on purpose
 		a[i] = 0xfeedfeed;	// just for better debugging
 
-	int *dc = a + l;
-	int ndc = n - l;
+	int *dc    = a + l;
+	size_t ndc = n - l;
 	int *sa    = aux + l;		// src list a[l .. m]
 	size_t nsa = m - l + 1;		//          len = m - l + 1
 	int *sb    = aux + m + 1;	// src list b[m+1 .. r]
