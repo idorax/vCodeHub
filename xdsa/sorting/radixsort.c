@@ -9,6 +9,9 @@
  *     1. Only unsigned int is supported;
  *     2. This radix sorting algorithm walks per digit of an integer by
  *        decimal bit.
+ *
+ * REFERENCES:
+ *     1. https://www.cs.usfca.edu/~galles/visualization/RadixSort.html
  */
 
 #include <stdio.h>
@@ -105,6 +108,18 @@ build_bin_byindex(int bin[], size_t nb, int a[], size_t na, int index)
 	/* 3. build bin[] */
 	for (int i = 1; i < nb; i++)
 		bin[i] += bin[i-1];
+	/*
+	 * XXX: The two-line code above is cool but a bit difficult to
+	 *      understand, we can enhance its readability via:
+	 *
+	 *	int prev = 0;
+	 *	for (int i = 0; i < nb; i++) {
+	 *		if (bin[i] == 0)
+	 *			continue;
+	 *		bin[i] += prev;
+	 *		prev = bin[i];
+	 *	}
+	 */
 
 	/* NOTE: dump bin[] just for visual observation */
 	printf("2#bin[]:\t"); show(bin, nb);
@@ -141,9 +156,7 @@ radixsort(int a[], int n)
 		/* 3. rebuild a[] */
 		for (int i = n - 1; i >= 0; i--) {
 			unsigned char d = get_digit_byindex(aux[i], index);
-			int j = bin[d] - 1;
-			a[j] = aux[i];
-			bin[d]--;
+			a[--bin[d]] = aux[i];
 		}
 
 		/* NOTE: dump a[] for visual observation */

@@ -9,6 +9,9 @@
  *     1. Only unsigned int is supported;
  *     2. This radix sorting algorithm walks per digit of an integer by
  *        binary bit, hence the total loops is 32 at most.
+ *
+ * REFERENCES:
+ *     1. https://visualgo.net/sorting
  */
 
 #include <stdio.h>
