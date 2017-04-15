@@ -10,7 +10,8 @@ TARGETS	= heapsort \
 	  mergesort \
 	  radixsort radixsort2 \
 	  shellsort \
-	  quicksort
+	  quicksort \
+	  bubblesort
 
 all: ${TARGETS}
 
@@ -48,6 +49,12 @@ quicksort: quicksort.o
 	${CC} ${CFLAGS} -o $@ $^
 
 quicksort.o: quicksort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
+bubblesort: bubblesort.o
+	${CC} ${CFLAGS} -o $@ $^
+
+bubblesort.o: bubblesort.c
 	${CC} ${CFLAGS} -c $< ${INCS}
 
 clean:
