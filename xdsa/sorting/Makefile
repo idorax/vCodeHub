@@ -9,7 +9,8 @@ INCS	=
 TARGETS	= heapsort \
 	  mergesort \
 	  radixsort radixsort2 \
-	  shellsort
+	  shellsort \
+	  quicksort
 
 all: ${TARGETS}
 
@@ -41,6 +42,12 @@ shellsort: shellsort.o
 	${CC} ${CFLAGS} -o $@ $^
 
 shellsort.o: shellsort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
+quicksort: quicksort.o
+	${CC} ${CFLAGS} -o $@ $^
+
+quicksort.o: quicksort.c
 	${CC} ${CFLAGS} -c $< ${INCS}
 
 clean:
