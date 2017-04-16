@@ -1,9 +1,6 @@
 /*
  * Copyright (C) 2017, Vector Li (idorax@126.com). All rights reserved.
  */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 /**
  * Knuth-Morris-Pratt Algorithm
@@ -28,6 +25,11 @@
  *	1. http://www-igm.univ-mlv.fr/~lecroq/string/node8.html
  *	2. http://www-igm.univ-mlv.fr/~lecroq/string/examples/exp8.html
  */
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 static void
 NEW_ARRAY(int **a, int m)
 {
