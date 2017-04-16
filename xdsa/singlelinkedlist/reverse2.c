@@ -100,10 +100,10 @@ reverse_single_linked_list(list_t **head)
 	}
 
 	/* rebuild the linked list by walking aux[] */
-	*head = (list_t *)aux[0];
+	*head = aux[0];
 	for (int i = 0; i < len-1; i++)
-		((list_t *)aux[i])->next = aux[i+1];
-	((list_t *)aux[len-1])->next = NULL;
+		aux[i]->next = aux[i+1];
+	aux[len-1]->next = NULL;
 
 	free(aux);
 }
