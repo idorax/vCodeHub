@@ -77,6 +77,7 @@ get_length(list_t *head)
 	return len;
 }
 
+#ifdef _USE_AUX
 static void
 reverse_single_linked_list(list_t **head)
 {
@@ -106,6 +107,38 @@ reverse_single_linked_list(list_t **head)
 
 	free(aux);
 }
+#else
+static void
+reverse_single_linked_list(list_t **head)
+{
+	list_t *newhead = NULL;
+	list_t *this = *head;
+	list_t *prev = NULL;
+
+	while (this != NULL) {
+		/*
+		 * If this->next is NULL, this is the tail node, which should
+		 * be the new head
+		 */
+		if (this->next == NULL)
+			newhead = this;
+
+		/*
+		 * ListIn:  prevNode -> thisNode -> nextNode
+		 * ListOut: prevNode <- thisNode <- nextNode
+		 *          1. thisNode->next = prevNode;
+		 *          2.       prevNode = thisNode;
+		 *          3.       thisNode = thisNode->next;
+		 */
+		list_t *t = this->next;
+		this->next = prev;
+		prev = this;
+		this = t;
+	}
+
+	*head = newhead;
+}
+#endif
 
 /*
  * join single linked list L2 to L1
