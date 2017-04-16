@@ -12,7 +12,8 @@ TARGETS	= heapsort \
 	  shellsort \
 	  quicksort \
 	  bubblesort \
-	  straightinsertionsort
+	  straightinsertionsort \
+	  simpleselectionsort
 
 all: ${TARGETS}
 
@@ -62,6 +63,12 @@ straightinsertionsort: straightinsertionsort.o
 	${CC} ${CFLAGS} -o $@ $^
 
 straightinsertionsort.o: straightinsertionsort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
+simpleselectionsort: simpleselectionsort.o
+	${CC} ${CFLAGS} -o $@ $^
+
+simpleselectionsort.o: simpleselectionsort.c
 	${CC} ${CFLAGS} -c $< ${INCS}
 
 clean:
