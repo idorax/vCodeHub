@@ -13,7 +13,8 @@
  *
  * REFERENCES:
  *	1. https://www.cs.usfca.edu/~galles/visualization/ComparisonSort.html
- *	2. https://interactivepython.org/courselib/static/pythonds/SortSearch/TheBubbleSort.html
+ *	2. https://interactivepython.org/courselib/static/pythonds/SortSearch/\
+ *	   TheBubbleSort.html
  */
 
 #include <stdio.h>

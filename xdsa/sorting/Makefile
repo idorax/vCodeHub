@@ -11,7 +11,8 @@ TARGETS	= heapsort \
 	  radixsort radixsort2 \
 	  shellsort \
 	  quicksort \
-	  bubblesort
+	  bubblesort \
+	  straightinsertionsort
 
 all: ${TARGETS}
 
@@ -55,6 +56,12 @@ bubblesort: bubblesort.o
 	${CC} ${CFLAGS} -o $@ $^
 
 bubblesort.o: bubblesort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
+straightinsertionsort: straightinsertionsort.o
+	${CC} ${CFLAGS} -o $@ $^
+
+straightinsertionsort.o: straightinsertionsort.c
 	${CC} ${CFLAGS} -c $< ${INCS}
 
 clean:
