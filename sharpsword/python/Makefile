@@ -1,9 +1,10 @@
 #
-# Copyright (C) 2012, 2017, Vector Li (idorax@126.com)
+# Copyright (C) 2012, 2017, Vector Li (idorax@126.com). All rights reserved.
 #
 
 TARGET	= icodeadm \
-	  ipyman
+	  ipyman \
+	  dos2unix
 
 all: $(TARGET)
 
@@ -12,6 +13,10 @@ icodeadm: icodeadm.py
 	chmod +x $@
 
 ipyman: ipyman.py
+	cp $< $@
+	chmod +x $@
+
+dos2unix: dos2unix.py
 	cp $< $@
 	chmod +x $@
 
