@@ -1,0 +1,254 @@
+/*
+ * Copyright (C) 2017, Vector Li (idorax@126.com). All rights reserved.
+ */
+
+/*
+ * Bucket Sort
+ *
+ * NOTE:
+ *	Bucket sort(or bin sort), is a sorting algorithm that works by
+ *	distributing the elements of an array into a number of buckets.
+ *	Each bucket is then sorted individually, either using a different
+ *	sorting algorithm, or by recursively applying the bucket sorting
+ *	algorithm.
+ *
+ *	Typically, bucket sort works as follows:
+ *	1. Set up an array of initially empty "buckets", the number of
+ *	   buckets is 10 by default
+ *	2. Scatter: go over the original array, putting each object in
+ *	   its bucket
+ *	3. Sort each non-empty bucket
+ *	4. Gather : visit the buckets in order and put all elements back
+ *	   into the original array
+ *
+ *	Note that step#2 and step#3 are merged into one step since we use
+ *	single linked list for per bucket for better performance.
+ *
+ * REFERENCES:
+ *	1. http://www.cs.usfca.edu/~galles/visualization/BucketSort.html
+ *	2. https://en.wikipedia.org/wiki/Bucket_sort
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef enum bool_s {false, true} bool_t;
+
+bool_t g_isint = true;
+
+typedef struct list_s {
+	int data;
+	struct list_s *next;
+} list_t;
+
+static void
+list_init(list_t **head, list_t *node)
+{
+	list_t *p = *head;
+	if (p == NULL) {
+		*head = node;
+		return;
+	}
+
+	/* get both prev and next of the node to insert */
+	list_t *node_prev = *head;
+	list_t *node_next = NULL;
+	for (p = *head; p != NULL; p = p->next) {
+		if (p->data < node->data) {
+			node_prev = p;
+			continue;
+		}
+
+		node_next = p;
+		break;
+	}
+
+	if (node_next == NULL) { /* append node to the tail */
+		node_prev->next = node;
+	} else {
+		if (node_next == node_prev) { /* == *head */
+			node->next = *head;
+			*head = node;
+			return;
+		}
+
+		/* node_prev -> node -> node_next */
+		node_prev->next = node;
+		node->next = node_next;
+	}
+}
+
+static void
+list_show(list_t *head)
+{
+	if (head == NULL)
+		return;
+
+	for (list_t *p = head; p != NULL; p = p->next)
+		printf("%d ", p->data);
+	printf("\n");
+}
+
+static void
+list_fini(list_t *head)
+{
+	list_t *p = head;
+	while (p != NULL) {
+		list_t *q = p;
+		p = p->next;
+		free(q);
+	}
+}
+
+static void
+show(int a[], size_t n)
+{
+	if (g_isint) {
+		for (int i = 0; i < n; i++)
+			printf("%-2d ", a[i]);
+	} else {
+		for (int i = 0; i < n; i++)
+			printf("%-2c ", a[i]);
+	}
+	printf("\n");
+}
+
+/*
+ * Get width of a number
+ * e.g.
+ *   for i in [  0 .. 9  ] // width = 1
+ *   for i in [ 10 .. 99 ] // width = 2
+ *   for i in [100 .. 999] // width = 3
+ *   ...
+ */
+static int
+get_width_of_num(int num)
+{
+	int w = 1;
+	for (int q = num / 10; q != 0; q /= 10)
+		w++;
+	return w;
+}
+
+static int
+get_hash_base(int a[], size_t n)
+{
+	/* get max one of a[] */
+	int max = a[0];
+	for (int i = 0; i < n; i++) {
+		if (max < a[i])
+		       max = a[i];
+	}
+
+	/* get hase base which is 10**N, N=1, 2, ... */
+	int base = 1;
+	for (int i = 0; i < get_width_of_num(max); i++)
+		base *= 10;
+
+	return base;
+}
+
+static void
+scatter(list_t **head, int e)
+{
+	list_t *new = NULL;
+	new = (list_t *)malloc(sizeof (list_t));
+	if (new == NULL) /* error: failed to malloc */
+		return;
+
+	new->data = e;
+	new->next = NULL;
+
+	list_init(head, new);
+}
+
+static void
+gather(list_t **bucket, size_t m, int a[], size_t n)
+{
+	int k = 0;
+	for (int i = 0; i < m; i++) {
+		if (bucket[i] == NULL)
+			continue;
+
+		for (list_t *p = bucket[i]; p != NULL; p = p->next) {
+			a[k++] = p->data;
+
+			if (k >= n) /* overflow */
+				break;
+		}
+
+		list_fini(bucket[i]);
+	}
+}
+
+void
+bucketsort(int a[], size_t n)
+{
+	/* alloc bucket[] */
+#define BUCKET_NUM 10
+	list_t **bucket = (list_t **)malloc(sizeof (list_t *) * BUCKET_NUM);
+	if (bucket == NULL) /* error */
+		return;
+	for (int i = 0; i < BUCKET_NUM; i++)
+		bucket[i] = NULL;
+
+	/* scatter elements in a[] to bucket[] */
+	int base = get_hash_base(a, n);
+	for (int i = 0; i < n; i++) {
+		int index = a[i] * BUCKET_NUM / base;
+		scatter(&(bucket[index]), a[i]);
+
+		printf("%d:%d\t\t%d\tbucket[%d] : ", i, index, a[i], index);
+		list_show(bucket[index]);
+	}
+
+	/* gather a[] by walking bucket[] */
+	gather(bucket, BUCKET_NUM, a, n);
+
+	free(bucket);
+}
+
+int
+main(int argc, char *argv[])
+{
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s <C1> [C2] ...\n", argv[0]);
+		return -1;
+	}
+
+	argc--;
+	argv++;
+
+	int n = argc;
+	int *a = (int *)malloc(sizeof(int) * n);
+#define VALIDATE(p) do { if (p == NULL) return -1; } while (0)
+	VALIDATE(a);
+
+	char *s = getenv("ISINT");
+	if (s != NULL && strncmp(s, "true", 4) == 0)
+		g_isint = true;
+	else if (s != NULL && strncmp(s, "false", 4) == 0)
+		g_isint = false;
+
+	if (g_isint) {
+		for (int i = 0; i < n; i++)
+			*(a+i) = atoi(argv[i]);
+	} else {
+		for (int i = 0; i < n; i++)
+			*(a+i) = argv[i][0];
+	}
+
+	printf("                ");
+	for (int i = 0; i < n; i++)
+		printf("%-2x ", i);
+	printf("\n");
+
+	printf("Before sorting: "); show(a, n);
+	bucketsort(a, n);
+	printf("After  sorting: "); show(a, n);
+
+#define FREE(p) do { free(p); p = NULL; } while (0)
+	FREE(a);
+	return 0;
+}

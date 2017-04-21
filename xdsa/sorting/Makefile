@@ -13,7 +13,8 @@ TARGETS	= heapsort \
 	  quicksort \
 	  bubblesort \
 	  straightinsertionsort \
-	  simpleselectionsort
+	  simpleselectionsort \
+	  bucketsort
 
 all: ${TARGETS}
 
@@ -69,6 +70,12 @@ simpleselectionsort: simpleselectionsort.o
 	${CC} ${CFLAGS} -o $@ $^
 
 simpleselectionsort.o: simpleselectionsort.c
+	${CC} ${CFLAGS} -c $< ${INCS}
+
+bucketsort: bucketsort.o
+	${CC} ${CFLAGS} -o $@ $^
+
+bucketsort.o: bucketsort.c
 	${CC} ${CFLAGS} -c $< ${INCS}
 
 clean:
