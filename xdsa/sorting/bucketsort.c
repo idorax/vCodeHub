@@ -65,7 +65,7 @@ list_init(list_t **head, list_t *node)
 	/* get both prev and next of the node to insert */
 	list_t *node_prev = *head;
 	list_t *node_next = NULL;
-	for (list_t p = *head; p != NULL; p = p->next) {
+	for (list_t *p = *head; p != NULL; p = p->next) {
 		if (p->data < node->data) {
 			node_prev = p;
 			continue;
