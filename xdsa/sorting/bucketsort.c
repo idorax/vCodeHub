@@ -22,7 +22,19 @@
  *	   into the original array
  *
  *	Note that step#2 and step#3 are merged into one step since we use
- *	single linked list for per bucket for better performance.
+ *	single linked list for per bucket for better performance. Right
+ *	here we just use insertion sorting algorithm to initiliaze a single
+ *	linked list.
+ *
+ *	In addition, we define N(=10) buckets, and use such hash algorithm in
+ *	the following,
+ *		a) get max number of a[] as MAX
+ *		b) get width of the max number (i.e. MAX) as WIDTH
+ *		   e.g. MAX = 9,   WIDTH = 1;
+ *		        MAX = 99,  WIDTH = 2;
+ *		        MAX = 999, WIDTH = 3;
+ *		c) index = a[i] * N / (10 ** WIDTH)
+ *	then we can dispatch a[i] to bucket[index]
  *
  * REFERENCES:
  *	1. http://www.cs.usfca.edu/~galles/visualization/BucketSort.html
@@ -45,8 +57,7 @@ typedef struct list_s {
 static void
 list_init(list_t **head, list_t *node)
 {
-	list_t *p = *head;
-	if (p == NULL) {
+	if (*head == NULL) {
 		*head = node;
 		return;
 	}
@@ -54,7 +65,7 @@ list_init(list_t **head, list_t *node)
 	/* get both prev and next of the node to insert */
 	list_t *node_prev = *head;
 	list_t *node_next = NULL;
-	for (p = *head; p != NULL; p = p->next) {
+	for (list_t p = *head; p != NULL; p = p->next) {
 		if (p->data < node->data) {
 			node_prev = p;
 			continue;
@@ -141,7 +152,7 @@ get_hash_base(int a[], size_t n)
 		       max = a[i];
 	}
 
-	/* get hase base which is 10**N, N=1, 2, ... */
+	/* get hash base which is 10**N, N=1, 2, ... */
 	int base = 1;
 	for (int i = 0; i < get_width_of_num(max); i++)
 		base *= 10;
