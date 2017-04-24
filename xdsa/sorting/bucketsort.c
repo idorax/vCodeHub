@@ -13,13 +13,12 @@
  *	algorithm.
  *
  *	Typically, bucket sort works as follows:
- *	1. Set up an array of initially empty "buckets", the number of
- *	   buckets is 10 by default
+ *	1. Set up an array of initially empty "buckets"
  *	2. Scatter: go over the original array, putting each object in
- *	   its bucket
+ *	            its bucket
  *	3. Sort each non-empty bucket
  *	4. Gather : visit the buckets in order and put all elements back
- *	   into the original array
+ *	            into the original array
  *
  *	Note that step#2 and step#3 are merged into one step since we use
  *	single linked list for per bucket for better performance. Right
@@ -161,17 +160,28 @@ get_hash_base(int a[], size_t n)
 }
 
 static void
-scatter(list_t **head, int e)
+scatter(list_t **bucket, size_t m, int a[], size_t n)
 {
-	list_t *new = NULL;
-	new = (list_t *)malloc(sizeof (list_t));
-	if (new == NULL) /* error: failed to malloc */
-		return;
+	int base = get_hash_base(a, n);
 
-	new->data = e;
-	new->next = NULL;
+	for (int i = 0; i < n; i++) {
+		/* 1. new a node for a[i] */
+		list_t *nodep = NULL;
+		nodep = (list_t *)malloc(sizeof (list_t));
+		if (nodep == NULL) /* error: failed to malloc */
+			return;
 
-	list_init(head, new);
+		nodep->data = a[i];
+		nodep->next = NULL;
+
+		/* 2. dispatch the new node to bucket[j] */
+		int j = a[i] * m / base;
+		list_init(&(bucket[j]), nodep);
+
+		/* NOTE: dump bucket[j] just for visual observation */
+		printf("%d:%d\t\t%d\tbucket[%d] : ", i, j, a[i], j);
+		list_show(bucket[j]);
+	}
 }
 
 static void
@@ -199,20 +209,13 @@ bucketsort(int a[], size_t n)
 	/* alloc bucket[] */
 #define BUCKET_NUM 10
 	list_t **bucket = (list_t **)malloc(sizeof (list_t *) * BUCKET_NUM);
-	if (bucket == NULL) /* error */
+	if (bucket == NULL) /* error: failed to malloc */
 		return;
 	for (int i = 0; i < BUCKET_NUM; i++)
 		bucket[i] = NULL;
 
 	/* scatter elements in a[] to bucket[] */
-	int base = get_hash_base(a, n);
-	for (int i = 0; i < n; i++) {
-		int index = a[i] * BUCKET_NUM / base;
-		scatter(&(bucket[index]), a[i]);
-
-		printf("%d:%d\t\t%d\tbucket[%d] : ", i, index, a[i], index);
-		list_show(bucket[index]);
-	}
+	scatter(bucket, BUCKET_NUM, a, n);
 
 	/* gather a[] by walking bucket[] */
 	gather(bucket, BUCKET_NUM, a, n);
