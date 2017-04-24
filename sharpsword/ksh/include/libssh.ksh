@@ -325,7 +325,7 @@ function ssh_setup
 	typeset f_cb_dst=/tmp/$(basename $f_cb_src).dst.$$
 	trap "rm -f $f_cb_src" EXIT
 	cat > $f_cb_src 2> /dev/null << EOF
-		#!/usr/bin/ksh
+		#!/usr/bin/bash
 		#set -x
 		trap "rm -f \$0" EXIT
 		rsa="$src_rsa"
@@ -334,10 +334,10 @@ function ssh_setup
 		[[ ! -d \${home}/.ssh ]] && mkdir -m 0700 \${home}/.ssh
 		f_auth="\${home}/.ssh/authorized_keys2"
 		if [[ ! -f \${f_auth} ]]; then
-			print -- \${rsa} > \${f_auth}
+			echo \${rsa} > \${f_auth}
 		else
 			egrep "\${rsa%%+*}" \${f_auth} > /dev/null 2>&1
-			(( \$? != 0 )) && print -- \${rsa} >> \${f_auth}
+			(( \$? != 0 )) && echo \${rsa} >> \${f_auth}
 		fi
 
 		exit 0
