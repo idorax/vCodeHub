@@ -38,23 +38,18 @@ typedef struct list_s {
 
 #ifdef _USE_AUX /* solution (a) */
 static void
-list_fastinit(list_t **head, list_t **tail, list_t *node)
-{
-	if (*head == NULL) {
-		*head = node;
-		*tail = node;
-		return;
-	}
-
-	(*tail)->next = node;
-	*tail = node;
-}
-
-static void
 list_init(list_t **head, list_t *node)
 {
 	static list_t *tail = NULL;
-	list_fastinit(head, &tail, node);
+
+	if (*head == NULL) {
+		*head = node;
+		tail = node;
+		return;
+	}
+
+	tail->next = node;
+	tail = node;
 }
 #else
 static void
