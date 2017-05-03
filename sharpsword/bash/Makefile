@@ -2,13 +2,13 @@
 # Copyright (C) 2017, Vector Li (idorax@126.com). All rights reserved.
 #
 
-TARGETS	= imod
+TARGETS	= imod \
+	  getCOperators
 
 all: $(TARGETS)
 
-imod: imod.sh
-	cp $< $@
-	chmod +x $@
+%: %.sh
+	cp $< $@ && chmod +x $@
 
 clean:
 
