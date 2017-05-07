@@ -24,6 +24,11 @@ typedef struct list_s {
 extern list_t *list_d2l(void *object, size_t offset);
 extern   void *list_l2d(list_t *list);
 
+#define LIST_INIT(list, offset) do {		\
+		(list)->next = NULL;		\
+		(list)->offset = (offset);	\
+	} while (0)
+
 #ifdef	__cplusplus
 }
 #endif

@@ -18,11 +18,7 @@ list_d2l(void *object, size_t offset)
 	if (object == NULL)
 		return NULL;
 
-	list_t *p = (list_t *)((char *)object + offset);
-	p->offset = offset;
-	p->next = NULL;
-
-	return p;
+	return (list_t *)((char *)object + offset);
 }
 
 /*

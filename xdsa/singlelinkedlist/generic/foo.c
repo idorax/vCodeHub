@@ -12,13 +12,14 @@ typedef struct foo_s {
 } foo_t;
 
 static void
-foo_init(list_t **head, void *object, size_t offset)
+foo_insert_tail(list_t **head, void *object, size_t offset)
 {
 	if (object == NULL)
 		return;
 
 	printf("init (node) %p\n", object);
 	list_t *node = list_d2l(object, offset);
+	LIST_INIT(node, offset);
 
 	if (*head == NULL) {
 		*head = node;
@@ -73,7 +74,7 @@ main(int argc, char *argv[])
 			return -1;
 		p->data = 0x1001 + i;
 
-		foo_init(&head, (void *)p, offsetof(foo_t, link));
+		foo_insert_tail(&head, (void *)p, offsetof(foo_t, link));
 	}
 
 	foo_show(head);
