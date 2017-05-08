@@ -10,6 +10,11 @@
 
 boolean_t debug = B_FALSE;
 
+typedef struct sort_view_s {
+	uint16_t	id;
+	uint32_t	sum;
+} sort_view_t;
+
 static void
 trim(char *dst, char *src)
 {

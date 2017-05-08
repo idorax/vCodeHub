@@ -70,11 +70,6 @@ typedef struct course_view_s {
 	list_t		link;
 } course_view_t;
 
-typedef struct sort_view_s {
-	uint16_t	id;
-	uint32_t	sum;
-} sort_view_t;
-
 extern boolean_t debug;
 #define DEBUG(a) { if (debug) a; }
 

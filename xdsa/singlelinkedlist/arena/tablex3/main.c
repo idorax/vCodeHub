@@ -66,8 +66,8 @@
  *     foo [-h] [-aflm] [-d dir] [-s sid] [-c cid] [-o filename]
  *
  * foo will take input from a set of files in a specific folder about
- * student names, courses and test results and create a report for that
- * data listing test statistics for each course and each student in the
+ * student names, courses and scores and create a report for that
+ * data listing statistics for each course and each student in the
  * average, highest and lowest scores, or a list of the failed results
  * (score < 60) with the course ids, student ids and scores.
  *
@@ -78,7 +78,7 @@
  *    example.
  * 3) Student ids and course ids are not necessarily sequential numbers.
  *
- * students.dat
+ *     students.dat
  *
  *         #sid            #name
  *         1               John
@@ -87,14 +87,14 @@
  *         4               Amy
  *         5               Alice
  *
- * courses.dat
+ *     courses.dat
  *
  *         #name           #cid
  *         math            4
  *         english         1
  *         art             2
  *
- * scores.dat
+ *     scores.dat
  *
  *         #cid    #sid    #score
  *         1       1       80
@@ -291,14 +291,14 @@
  *
  *         $ ./foo -d /tmp/data
  *
- *         [[Output example omitted.]
+ *         [Output example omitted.]
  *
  * 10.     User enters data via a file and requested the output be written to
  *         a file using the "-o" option.
  *
  *         $ ./foo -o /tmp/foo.out
  *
- *         [Contents of myresult.txt omitted.]
+ *         [Contents of /tmp/foo.out omitted.]
  */
 
 #include <stdio.h>
@@ -334,9 +334,9 @@ do_foo_0(list_t *l_stu, list_t *l_stu_view,
 		list_t *l = list_d2l(pcou->lss, offsetof(ss_t, link));
 		for (list_t *q = l; q != NULL; q = q->next) {
 			uint8_t score = ((ss_t *)list_l2d(q))->score;
-			max   = MAX(max, score);
-			min   = MIN(min, score);
-			sum  += score;
+			max = MAX(max, score);
+			min = MIN(min, score);
+			sum += score;
 			nstu++;
 		}
 
@@ -361,9 +361,9 @@ do_foo_0(list_t *l_stu, list_t *l_stu_view,
 		list_t *l = list_d2l(pstu->lcs, offsetof(cs_t, link));
 		for (list_t *q = l; q != NULL; q = q->next) {
 			uint8_t score = ((cs_t *)list_l2d(q))->score;
-			max   = MAX(max, score);
-			min   = MIN(min, score);
-			sum  += score;
+			max = MAX(max, score);
+			min = MIN(min, score);
+			sum += score;
 			ncou++;
 		}
 
@@ -537,11 +537,11 @@ do_foo_f(list_t *l_stu, list_t *l_stu_view,
 			if (xsid != 0 && sid != xsid)
 				continue;
 
-			char *sname = get_student_name(sid, l_stu);
-
 			if (((ss_t *)list_l2d(q))->score < 60) {
 				if (flag++ != 0)
 					cname = "";
+
+				char *sname = get_student_name(sid, l_stu);
 				printf("%s\t%u\t%s\n", cname, sid, sname);
 			}
 
@@ -736,12 +736,12 @@ main(int argc, char *argv[])
 	list_t *l_stu_view = NULL; /* list of student view (student_view_t) */
 	list_t *l_cou_view = NULL; /* list of course  view (course_view_t) */
 
-#define FLAG_A	(1<<0)
-#define FLAG_F	(1<<1)
-#define FLAG_L	(1<<2)
-#define FLAG_M	(1<<3)
-#define FLAG_S	(1<<4)
-#define FLAG_C	(1<<5)
+#define FLAG_A	(1<<0) /* Average    */
+#define FLAG_F	(1<<1) /* Failed     */
+#define FLAG_L	(1<<2) /* Lowest     */
+#define FLAG_M	(1<<3) /* Highest    */
+#define FLAG_S	(1<<4) /* Student ID */
+#define FLAG_C	(1<<5) /* Course  ID */
 	char flag;
 	char *data_dirname = D_DATA;
 	char data_file[256];
