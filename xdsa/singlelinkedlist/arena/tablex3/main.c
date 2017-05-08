@@ -788,7 +788,7 @@ main(int argc, char *argv[])
 
 		case 'h':
 			usage(argv[0], B_TRUE);
-			return (-1);
+			return -1;
 
 		case 'D': /* private option for debugging only */
 			debug = B_TRUE;
@@ -797,13 +797,13 @@ main(int argc, char *argv[])
 		case ':':
 			fprintf(stderr, "Option '-%c' wants an argument\n",
 			        optopt);
-			return (-1);
+			return -1;
 
 		case '?':
 			fprintf(stderr, "%s: -%c invalid option\n",
 			        argv[0], optopt);
 			usage(argv[0], B_FALSE);
-			return (-1);
+			return -1;
 		}
 	}
 
@@ -902,5 +902,5 @@ done1:
 	if (fd != -1)
 		close(fd);
 
-	return (rc);
+	return rc;
 }

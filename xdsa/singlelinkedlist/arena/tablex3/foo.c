@@ -68,7 +68,7 @@ init_student_list(list_t **l, char *file)
 	if (fp == NULL) {
 		fprintf(stderr, "failed to open file %s: %s\n",
 		        file, strerror(errno));
-		return (-1);
+		return -1;
 	}
 
 	while (fgets(tmp, sizeof(tmp), fp) != 0) {
@@ -96,7 +96,7 @@ init_student_list(list_t **l, char *file)
 
 done:
 	fclose(fp);
-	return (rc);
+	return rc;
 }
 
 int
@@ -110,7 +110,7 @@ init_course_list(list_t **l, char *file)
 	if (fp == NULL) {
 		fprintf(stderr, "failed to open file %s: %s\n",
 		        file, strerror(errno));
-		return (-1);
+		return -1;
 	}
 
 	while (fgets(tmp, sizeof(tmp), fp) != 0) {
@@ -138,7 +138,7 @@ init_course_list(list_t **l, char *file)
 
 done:
 	fclose(fp);
-	return (rc);
+	return rc;
 }
 
 int
@@ -152,7 +152,7 @@ init_score_list(list_t **l, char *file)
 	if (fp == NULL) {
 		fprintf(stderr, "failed to open file %s: %s\n",
 		        file, strerror(errno));
-		return (-1);
+		return -1;
 	}
 
 	while (fgets(tmp, sizeof(tmp), fp) != 0) {
@@ -183,7 +183,7 @@ init_score_list(list_t **l, char *file)
 
 done:
 	fclose(fp);
-	return (rc);
+	return rc;
 }
 
 void
@@ -240,7 +240,7 @@ init_student_view(list_t *lstu, list_t *lsco, list_t **lview)
 	sort_view_t *sv = (sort_view_t *)malloc(sizeof (sort_view_t) * sv_sz);
 	if (sv == NULL) {
 		fprintf(stderr, "failed to malloc:%s\n", strerror(errno));
-		return (-1);
+		return -1;
 	}
 	memset(sv, 0, sizeof (sort_view_t) * sv_sz);
 	DEBUG(printf("%p <-- MALLOC@student_sort_view\n", sv));
@@ -322,7 +322,7 @@ done:
 	DEBUG(printf("%p <-- FREE@student_sort_view\n", sv));
 	free(sv);
 
-	return (rc);
+	return rc;
 }
 
 int
@@ -343,7 +343,7 @@ init_course_view(list_t *lcou, list_t *lsco, list_t **lview)
 	sort_view_t *sv = (sort_view_t *)malloc(sizeof (sort_view_t) * sv_sz);
 	if (sv == NULL) {
 		fprintf(stderr, "failed to malloc:%s\n", strerror(errno));
-		return (-1);
+		return -1;
 	}
 	memset(sv, 0, sizeof (sort_view_t) * sv_sz);
 	DEBUG(printf("%p <-- MALLOC@course_sort_view\n", sv));
@@ -424,7 +424,7 @@ done:
 	DEBUG(printf("%p <-- FREE@course_sort_view\n", sv));
 	free(sv);
 
-	return (rc);
+	return rc;
 }
 
 void

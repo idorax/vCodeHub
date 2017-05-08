@@ -4,6 +4,7 @@
 
 CC	= gcc
 CFLAGS	= -g -Wall -std=c99 -m32
+INCS	= -I../../generic/
 
 all: foo data test
 
@@ -11,12 +12,12 @@ foo: main.o foo.o list.o
 	${CC} ${CFLAGS} -o $@ $^
 
 main.o: main.c
-	${CC} ${CFLAGS} -c $<
+	${CC} ${CFLAGS} ${INCS} -c $<
 
 foo.o: foo.c foo.h
-	${CC} ${CFLAGS} -c $<
+	${CC} ${CFLAGS} ${INCS} -c $<
 
-list.o: list.c list.h
+list.o: ../../generic/list.c ../../generic/list.h
 	${CC} ${CFLAGS} -c $<
 
 data: data_generator
