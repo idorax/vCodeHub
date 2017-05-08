@@ -24,10 +24,14 @@ typedef struct list_s {
 extern list_t *list_d2l(void *object, size_t offset);
 extern   void *list_l2d(list_t *list);
 
-#define LIST_INIT(list, offset) do {		\
+#define LIST_INIT_NODE(list, offset) do {	\
 		(list)->next = NULL;		\
 		(list)->offset = (offset);	\
 	} while (0)
+
+extern   void list_insert_head(list_t **head, void *object, size_t offset);
+extern   void list_insert_tail(list_t **head, void *object, size_t offset);
+extern   void list_delete(list_t **head, list_t *node);
 
 #ifdef	__cplusplus
 }

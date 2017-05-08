@@ -3,7 +3,7 @@
 #
 
 CC	= gcc
-CFLAGS	= -g -Wall -m32 -std=gnu99
+CFLAGS	= -g -Wall -m32 -std=c99
 
 all: foo
 
