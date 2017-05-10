@@ -74,7 +74,7 @@ foo_delete(list_t **head, int num)
 	if (node == NULL)
 		return;
 
-	printf("\ndel (list) %p next (list) %p ", node, node->next);
+	printf("\ndel  (list) %p next (list) %p ", node, node->next);
 	list_delete(head, node);
 
 	foo_t *p = list_l2d(node);
@@ -86,12 +86,40 @@ foo_delete(list_t **head, int num)
 }
 
 static void
+foo_insert_before(list_t **head, int n1, int n2)
+{
+	list_t *node2 = NULL;
+	for (list_t *p = *head; p != NULL; p = p->next) {
+		foo_t *obj = list_l2d(p);
+		if (obj->data == n2) {
+			node2 = p;
+			break;
+		}
+	}
+
+	foo_t *node1obj = (foo_t *)malloc(sizeof (foo_t));
+	if (node1obj == NULL) /* error */
+		return;
+	node1obj->data = n1;
+
+	size_t offset = offsetof(foo_t, link);
+	list_t *node1 = list_d2l(node1obj, offset);
+	LIST_INIT_NODE(node1, offset);
+
+	printf("\ninst (list) %p before(list)%p\n\n", node1, node2);
+	list_insert_before(head, node1, node2);
+	foo_show(*head);
+}
+
+static void
 usage(char *s)
 {
-	fprintf(stderr, "Usage: %s [-d <element>] [-R] <num>\n", s);
+	fprintf(stderr, "Usage: %s [-d <element>] [-R]"
+	        " [-i <new element>] <num>\n", s);
 	fprintf(stderr, "  e.g. %s 10\n", s);
 	fprintf(stderr, "       %s -R 10\n", s);
 	fprintf(stderr, "       %s -d 1001 10\n", s);
+	fprintf(stderr, "       %s -i 9001 -d 1001 10\n", s);
 }
 
 int
@@ -100,11 +128,16 @@ main(int argc, char *argv[])
 	char *arg0 = argv[0];
 
 	int num2delete = -1;
+	int num2insert = -1;
 	char c;
-	while ((c = getopt(argc, argv, ":d:Rh")) != -1) {
+	while ((c = getopt(argc, argv, ":d:i:Rh")) != -1) {
 		switch(c) {
 		case 'd': /* delete */
 			sscanf(optarg, "%x", &num2delete);
+			break;
+
+		case 'i': /* insert a before b */
+			sscanf(optarg, "%x", &num2insert);
 			break;
 
 		case 'R': /* reverse */
@@ -141,6 +174,8 @@ main(int argc, char *argv[])
 	list_t *head = NULL;
 	foo_init(&head, atoi(argv[0]));
 	foo_show(head);
+	if (num2insert != -1)
+		foo_insert_before(&head, num2insert, num2delete);
 	if (num2delete != -1)
 		foo_delete(&head, num2delete);
 	foo_fini(head);

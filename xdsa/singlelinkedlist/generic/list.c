@@ -99,3 +99,29 @@ list_delete(list_t **head, list_t *node)
 	}
 	q->next = node->next;
 }
+
+/*
+ * Insert node1 before node2
+ *
+ * NOTE: Both *head and node2 can be NULL
+ *       a) if *head is NULL, new head (*head) = node1;
+ *                            and  node1->next = node2;
+ *       b) if node2 is NULL, just add node1 to the tail of list
+ */
+void
+list_insert_before(list_t **head, list_t *node1, list_t *node2)
+{
+	if (head == NULL || node1 == NULL)
+		return;
+
+	list_t *node2_prev = NULL;
+	for (list_t *p = *head; p != node2; p = p->next)
+		node2_prev = p;
+
+	if (node2_prev == NULL) /* node2 == *head */
+		*head = node1;
+	else
+		node2_prev->next = node1;
+
+	node1->next = node2;
+}
