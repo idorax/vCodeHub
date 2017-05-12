@@ -77,6 +77,7 @@ list_insert_head(list_t **head, void *object, size_t offset)
 	*head = node;
 }
 
+#ifndef _GOOD_TASTE
 /*
  * Delete a node from list
  */
@@ -86,19 +87,50 @@ list_delete(list_t **head, list_t *node)
 	if (head == NULL || *head == NULL || node == NULL)
 		return;
 
+	/* if (*head) == node, new head is node->next */
 	if (*head == node) {
 		*head = node->next;
 		return;
 	}
 
+	/* else walk the list to find the prev node of entry we wanna remove */
 	list_t *q = *head;
 	for (list_t *p = *head; p != NULL; p = p->next) {
 		if (p == node)
 			break;
 		q = p;
 	}
+
+	/* now remove the node by updating its prev node's next */
 	q->next = node->next;
 }
+#else
+/*
+ * Delete a node from list
+ */
+void
+list_delete(list_t **head, list_t *node)
+{
+	if (head == NULL || *head == NULL || node == NULL)
+		return;
+
+	/*
+	 * The "indirect" pointer points to the address of the thing
+	 * we will update
+	 */
+	list_t **indirect = head;
+
+	/*
+	 * Walk the list, looking for the thing that points to
+	 * the entry we want to remove
+	 */
+	while (*indirect != node)
+		indirect = &(*indirect)->next;
+
+	/* .. and just remove it */
+	*indirect = node->next;
+}
+#endif
 
 /*
  * Insert node1 before node2
