@@ -136,9 +136,13 @@ list_delete(list_t **head, list_t *node)
  * Insert node1 before node2
  *
  * NOTE: Both *head and node2 can be NULL
- *       a) if *head is NULL, new head (*head) = node1;
- *                            and  node1->next = node2;
- *       b) if node2 is NULL, just add node1 to the tail of list
+ *       a) if node2 is NULL
+ *              if   *head is NULL  : (new head) *head = node1
+ *              else                : just add node1 to the tail of list
+ *       b) else
+ *              node1->next = node2
+ *              if   *head is node2 : (new head) *head = node1
+ *              else                : (prev of node2)->next = node1
  */
 void
 list_insert_before(list_t **head, list_t *node1, list_t *node2)
@@ -146,14 +150,53 @@ list_insert_before(list_t **head, list_t *node1, list_t *node2)
 	if (head == NULL || node1 == NULL)
 		return;
 
-	list_t *node2_prev = NULL;
-	for (list_t *p = *head; p != node2; p = p->next)
-		node2_prev = p;
+	/*
+	 * XXX: These 4 lines in the following can be removed actually,
+	 *      just add for helping to understand at ease
+	 */
+	if (node2 == NULL) {
+		list_insert_after(head, node1, NULL);
+		return;
+	}
 
-	if (node2_prev == NULL) /* node2 == *head */
-		*head = node1;
-	else
-		node2_prev->next = node1;
+	/* Get the prev node of node2 */
+	list_t *prev = NULL;
+	for (list_t *p = *head; p != node2; p = p->next)
+		prev = p;
+
+	/* Note *head = node1 if *head == node2 */
+	list_t **indirect = (prev == NULL) ? head : &prev->next;
+	*indirect = node1;
 
 	node1->next = node2;
+}
+
+/*
+ * Insert node1 after node2
+ *
+ * NOTE: Both *head and node2 can be NULL
+ *       a) if node2 is NULL
+ *             if *head is NULL : (new head) *head = node1
+ *             else             : just add node1 to the tail of list
+ *       b) else
+ *             node1->next = node2->next
+ *             node2->next = node1
+ */
+void
+list_insert_after(list_t **head, list_t *node1, list_t *node2)
+{
+	if (head == NULL || node1 == NULL)
+		return;
+
+	if (node2 != NULL) {
+		node1->next = node2->next;
+		node2->next = node1;
+		return;
+	}
+
+	/* Note that *head = node1 if *head is NULL */
+	list_t **indirect = head;
+	while (*indirect != NULL)
+		indirect = &(*indirect)->next;
+	*indirect = node1;
 }

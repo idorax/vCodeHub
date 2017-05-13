@@ -33,6 +33,7 @@ extern   void list_insert_head(list_t **head, void *object, size_t offset);
 extern   void list_insert_tail(list_t **head, void *object, size_t offset);
 extern   void list_delete(list_t **head, list_t *node);
 extern   void list_insert_before(list_t **head, list_t *node1, list_t *node2);
+extern   void list_insert_after(list_t **head, list_t *node1, list_t *node2);
 
 #ifdef	__cplusplus
 }

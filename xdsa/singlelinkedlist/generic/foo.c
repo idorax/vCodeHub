@@ -85,29 +85,51 @@ foo_delete(list_t **head, int num)
 	foo_show(*head);
 }
 
+static list_t *
+foo_find(list_t *head, int data)
+{
+	for (list_t *p = head; p != NULL; p = p->next) {
+		foo_t *obj = list_l2d(p);
+		if (obj->data == data)
+			return p;
+	}
+	return NULL;
+}
+
+static list_t *
+foo_new(int data)
+{
+	foo_t *obj = (foo_t *)malloc(sizeof (foo_t));
+	if (obj == NULL) /* error */
+		return NULL;
+	obj->data = data;
+
+	size_t offset = offsetof(foo_t, link);
+	list_t *node = list_d2l(obj, offset);
+	LIST_INIT_NODE(node, offset);
+
+	return node;
+}
+
 static void
 foo_insert_before(list_t **head, int n1, int n2)
 {
-	list_t *node2 = NULL;
-	for (list_t *p = *head; p != NULL; p = p->next) {
-		foo_t *obj = list_l2d(p);
-		if (obj->data == n2) {
-			node2 = p;
-			break;
-		}
-	}
-
-	foo_t *node1obj = (foo_t *)malloc(sizeof (foo_t));
-	if (node1obj == NULL) /* error */
-		return;
-	node1obj->data = n1;
-
-	size_t offset = offsetof(foo_t, link);
-	list_t *node1 = list_d2l(node1obj, offset);
-	LIST_INIT_NODE(node1, offset);
+	list_t *node2 = foo_find(*head, n2);
+	list_t *node1 = foo_new(n1);
 
 	printf("\ninst (list) %p before(list)%p\n\n", node1, node2);
 	list_insert_before(head, node1, node2);
+	foo_show(*head);
+}
+
+static void
+foo_insert_after(list_t **head, int n1, int n2)
+{
+	list_t *node2 = foo_find(*head, n2);
+	list_t *node1 = foo_new(n1);
+
+	printf("\ninst (list) %p after (list)%p\n\n", node1, node2);
+	list_insert_after(head, node1, node2);
 	foo_show(*head);
 }
 
@@ -129,8 +151,9 @@ main(int argc, char *argv[])
 
 	int num2delete = -1;
 	int num2insert = -1;
+	int num2insert2 = -1;
 	char c;
-	while ((c = getopt(argc, argv, ":d:i:Rh")) != -1) {
+	while ((c = getopt(argc, argv, ":d:i:I:Rh")) != -1) {
 		switch(c) {
 		case 'd': /* delete */
 			sscanf(optarg, "%x", &num2delete);
@@ -138,6 +161,10 @@ main(int argc, char *argv[])
 
 		case 'i': /* insert a before b */
 			sscanf(optarg, "%x", &num2insert);
+			break;
+
+		case 'I': /* insert a after b */
+			sscanf(optarg, "%x", &num2insert2);
 			break;
 
 		case 'R': /* reverse */
@@ -176,6 +203,8 @@ main(int argc, char *argv[])
 	foo_show(head);
 	if (num2insert != -1)
 		foo_insert_before(&head, num2insert, num2delete);
+	if (num2insert2 != -1)
+		foo_insert_after(&head, num2insert2, num2delete);
 	if (num2delete != -1)
 		foo_delete(&head, num2delete);
 	foo_fini(head);
