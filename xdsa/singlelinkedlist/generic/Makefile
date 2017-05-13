@@ -3,9 +3,9 @@
 #
 
 CC	= gcc
-CFLAGS	= -g -Wall -m32 -std=c99 -D_GOOD_TASTE
+CFLAGS	= -g -Wall -m32 -std=c99
 
-all: foo
+all: foo test
 
 foo: foo.o list.o
 	${CC} ${CFLAGS} -o $@ $^
@@ -16,9 +16,13 @@ foo.o: foo.c
 list.o: list.c list.h
 	${CC} ${CFLAGS} -c $<
 
+test: test.ksh
+	cp $< $@ && chmod +x $@
+
 clean:
 	rm -f *.o
 
 clobber: clean
 	rm -f foo
+	rm -f test
 cl: clobber

@@ -21,19 +21,24 @@ typedef struct list_s {
 	size_t offset;
 } list_t;
 
-extern list_t *list_d2l(void *object, size_t offset);
-extern   void *list_l2d(list_t *list);
+list_t *list_d2l(void *object, size_t offset);
+void   *list_l2d(list_t *list);
 
 #define LIST_INIT_NODE(list, offset) do {	\
 		(list)->next = NULL;		\
 		(list)->offset = (offset);	\
 	} while (0)
 
-extern   void list_insert_head(list_t **head, void *object, size_t offset);
-extern   void list_insert_tail(list_t **head, void *object, size_t offset);
-extern   void list_delete(list_t **head, list_t *node);
-extern   void list_insert_before(list_t **head, list_t *node1, list_t *node2);
-extern   void list_insert_after(list_t **head, list_t *node1, list_t *node2);
+void list_insert_tail(list_t **head, void *object, size_t offset);
+void list_insert_head(list_t **head, void *object, size_t offset);
+
+void list_insert_node_tail(list_t **head, list_t *node);
+void list_insert_node_head(list_t **head, list_t *node);
+
+void list_insert_node_after(list_t **head, list_t *node1, list_t *node2);
+void list_insert_node_before(list_t **head, list_t *node1, list_t *node2);
+
+void list_delete_node(list_t **head, list_t *node);
 
 #ifdef	__cplusplus
 }

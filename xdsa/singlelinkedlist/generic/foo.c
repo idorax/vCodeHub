@@ -75,7 +75,7 @@ foo_delete(list_t **head, int num)
 		return;
 
 	printf("\ndel  (list) %p next (list) %p ", node, node->next);
-	list_delete(head, node);
+	list_delete_node(head, node);
 
 	foo_t *p = list_l2d(node);
 	printf("\t: free (node) %p = {%#x, {%p, %d}}\n\n",
@@ -118,7 +118,7 @@ foo_insert_before(list_t **head, int n1, int n2)
 	list_t *node1 = foo_new(n1);
 
 	printf("\ninst (list) %p before(list)%p\n\n", node1, node2);
-	list_insert_before(head, node1, node2);
+	list_insert_node_before(head, node1, node2);
 	foo_show(*head);
 }
 
@@ -129,7 +129,7 @@ foo_insert_after(list_t **head, int n1, int n2)
 	list_t *node1 = foo_new(n1);
 
 	printf("\ninst (list) %p after (list)%p\n\n", node1, node2);
-	list_insert_after(head, node1, node2);
+	list_insert_node_after(head, node1, node2);
 	foo_show(*head);
 }
 
@@ -137,11 +137,12 @@ static void
 usage(char *s)
 {
 	fprintf(stderr, "Usage: %s [-d <element>] [-R]"
-	        " [-i <new element>] <num>\n", s);
+	        " [<-i|-I> <new element>] <num>\n", s);
 	fprintf(stderr, "  e.g. %s 10\n", s);
 	fprintf(stderr, "       %s -R 10\n", s);
 	fprintf(stderr, "       %s -d 1001 10\n", s);
 	fprintf(stderr, "       %s -i 9001 -d 1001 10\n", s);
+	fprintf(stderr, "       %s -I 9001 -d 1001 10\n", s);
 }
 
 int
