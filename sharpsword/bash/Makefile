@@ -3,7 +3,8 @@
 #
 
 TARGETS	= imod \
-	  getCOperators
+	  getCOperators \
+	  vmw
 
 all: $(TARGETS)
 
