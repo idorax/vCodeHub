@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2017, Vector Li (idorax@126.com)
+ * Copyright (C) 2015, 2017, Vector Li (idorax@126.com). All rights reserved.
  */
 
 /**
@@ -7,38 +7,49 @@
  *
  * NOTE:
  *	If the encoded text is done by user A, and it can be decoded
- *	by user A only. The default lease of encoded text is 600s.
+ *	by user A only. The default lease of encoded text is 180s.
  *
  * o How to Build it
  *   Solaris : gcc -m64           -DMAGICNUM="N*M" -g -Wall -o sudorax sudorax.c
  *   Linux   : gcc -m32 -D__LINUX -DMAGICNUM="N*M" -g -Wall -o sudorax sudorax.c
  *
  * o Usage Example
- *   host1$ ./sudorax -e foo
- *   58a2a0dd58a1ab1158a19b9158a18c08
- *   host2$ ./sudorax -d 58a2a0dd58a1ab1158a19b9158a18c08
- *   foo
+ *   By default,
+ *       host1$ ./sudorax -e E
+ *       0101100100100100111111010010000101011001001001000000011100110100
+ *       host2$ ./sudorax -d \
+ *       0101100100100100111111010010000101011001001001000000011100110100
+ *       E
+ *
+ *   If -D_USE_HEX is spedified,
+ *       host1$ ./sudorax -e foo
+ *       58a2a0dd58a1ab1158a19b9158a18c08
+ *       host2$ ./sudorax -d 58a2a0dd58a1ab1158a19b9158a18c08
+ *       foo
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
 #include <pwd.h>
-#include <stdlib.h>
 
-#ifdef __LINUX	/* Linux */
+#ifdef __LINUX			/* Linux */
 #include <string.h>
-#else		/* Solaris */
+#else /* Solaris */
 #include <strings.h>
 #endif
 
 #ifdef __LINUX
-typedef unsigned long long uint64_t;
-typedef unsigned long uint32_t;
+typedef unsigned long long	uint64_t;
+typedef unsigned int		uint32_t;
+typedef unsigned short		uint16_t;
+typedef unsigned char		uint8_t;
 #endif
 
-#define KEY_LEASE	600		/* lease of encoded text */
-#define BUF_SIZE	(1024 * 1024)	/* 1M by default */
+#define KEY_LEASE	180		/* lease of encoded text */
 #ifndef MAGICNUM
 #define MAGICNUM	(0x9741)	/* magic num to decode/encode */
 #endif
@@ -46,26 +57,21 @@ typedef unsigned long uint32_t;
 static uint64_t
 power(int32_t n, uint32_t m)
 {
-	uint32_t i;
 	uint64_t sum = 1;
-
-	for (i = 0; i < m; i++)
+	for (uint32_t i = 0; i < m; i++)
 		sum *= n;
-
 	return sum;
 }
 
 static uint64_t
 atoll16(char *s)
 {
-	uint64_t n = 0;
 	size_t sz = strlen(s);
 	char *p = s;
-	char c;
-	int i = 0;
 
-	for (i = 0; i < sz; i++) {
-		c = *(p + i);
+	uint64_t n = 0;
+	for (size_t i = 0; i < sz; i++) {
+		char c = *(p + i);
 
 		if (c >= '0' && c <= '9')
 			c -= '0';
@@ -83,15 +89,12 @@ atoll16(char *s)
 static uint64_t
 atoll10(char *s)
 {
-	uint64_t n = 0;
 	size_t sz = strlen(s);
 	char *p = s;
-	char c;
-	int i = 0;
 
-	for (i = 0; i < sz; i++) {
-		c = *(p + i);
-
+	uint64_t n = 0;
+	for (size_t i = 0; i < sz; i++) {
+		char c = *(p + i);
 		if (c >= '0' && c <= '9')
 			c -= '0';
 
@@ -104,15 +107,13 @@ atoll10(char *s)
 static uint32_t
 get_secid()
 {
-	char *p = NULL;
-	uint32_t i = 0;
-	uint32_t n = 0;
 	struct passwd *pwd = NULL;
-
 	if ((pwd = getpwuid(getuid())) == NULL)
 		return 0;
 
-	p = pwd->pw_name;
+	uint32_t n = 0;
+	uint32_t i = 0;
+	char *p = pwd->pw_name;
 	while (*p != '\0') {
 		n += *p;
 		n += (i * (MAGICNUM)) % *p;
@@ -123,108 +124,249 @@ get_secid()
 	return n;
 }
 
-static void
-do_encode(char *str, uint32_t lease)
+#ifndef  _USE_HEX
+static char *
+hexchar2bitstr(char c)
 {
-	char c = '\0';
-	char *p = str;
-	time_t ts = time(NULL) + lease;
-	time_t key = ts - ((MAGICNUM) << 4) + get_secid();
+	char *map[] = {
+		"0000", /* 0 */
+		"0001", /* 1 */
+		"0010", /* 2 */
+		"0011", /* 3 */
+		"0100", /* 4 */
+		"0101", /* 5 */
+		"0110", /* 6 */
+		"0111", /* 7 */
+		"1000", /* 8 */
+		"1001", /* 9 */
+		"1010", /* a|A */
+		"1011", /* b|B */
+		"1100", /* c|C */
+		"1101", /* d|D */
+		"1110", /* e|E */
+		"1111", /* f|F */
+		NULL
+	};
 
-	(void) printf("%08lx", ts); /* time stamp : 8 chars */
+	int index = 0;
+	if (c >= '0' && c <= '9')
+		index = c - '0';
+	else if (c >= 'a' && c <= 'f')
+		index = c - 'a' + 10;
+	else if (c >= 'A' && c <= 'F')
+		index = c - 'a' + 10;
+	else
+		index = sizeof(map) / sizeof(char *) - 1;
 
-	int i = 0;
-	while (*p != '\0') {
-		c = *p;
-		p++;
-		(void) printf("%08lx", c + key - (i * 41 * 97)); /* each char */
-		i++;
+	return map[index];
+}
+
+static char *
+str2bitstr(char *s)
+{
+	size_t n = strlen(s) * 4;
+
+	char *buf = (char *)malloc(sizeof (char) * (n + 1));
+	if (buf == NULL) /* error */
+		return NULL;
+	(void)memset(buf, 0, n + 1);
+
+	size_t i = 0;
+	for (char *p = s; *p != '\0'; p++) {
+		char *bits = hexchar2bitstr(*p);
+		snprintf(buf + i, n, "%s", bits);
+		i += 4;
 	}
 
-	(void) printf("\n");
+	return buf;
+}
+
+static char
+bitstr2hexchar(char *s)
+{
+	uint8_t n = 0;
+	for (int i = 0; i < 4; i++) {
+		uint8_t bit = s[i] - '0'; /* s[i] is either '0' or '1' */
+		if (bit != 0x0 && bit != 0x1)
+			return '\0';
+
+		n += ((1 << (3 - i)) * bit);
+	}
+
+	if (n >= 0 && n <= 9)
+		return ('0' + n);
+	else if (n >= 10 && n <= 15)
+		return ('a' + n - 10);
+	else
+		return '\0'; /* should not reached */
 }
 
 static void
-do_decode(char *str, int reverse)
+do_encode(char *str, uint32_t lease)
 {
-	char *out = NULL;
-	char *out2 = NULL;
+	time_t ts = time(NULL) + lease;
+	time_t key = ts - ((MAGICNUM) << 4) + get_secid();
 
-	char c = '\0';
+	char buf[16] = { 0 }; /* only 8 bytes are required */
+
+#define ENCODE_CORE(buf, num) do { \
+		(void)memset(buf, 0, sizeof(buf)); \
+		snprintf(buf, sizeof(buf), "%08lx", num); \
+		char *p = str2bitstr(buf); \
+		printf("%s", p); \
+		free(p); \
+	} while (0)
+
+	ENCODE_CORE(buf, ts);
+
 	char *p = str;
-	time_t key = 0;
-	time_t ts = 0;
+	int i = 0;
+	while (*p != '\0') {
+		char c = *p;
+		p++;
+
+		ENCODE_CORE(buf, c + key - (i * (MAGICNUM)));
+
+		i++;
+	}
+}
+
+static void
+do_decode(char *str)
+{
+	char buf[16] = { 0 }; /* only 8 bytes are required */
+
+	/* 0. firstly get current time stamp */
 	time_t ts_now = time(NULL);
 
-	int n = 0;
-	int i = 0;
-	int j = 0;
-	char buf[9] = {0};
+	/* 1. read time stamp : 32 chars */
+	for (int i = 0; i < 8; i++)
+		buf[i] = bitstr2hexchar(str + 4 * i);
 
-	/* read time stamp : 8 chars */
-	for (i = 0; i < 8; i++)
-		buf[i] = *(p + i);
-
-	/* check current time is out of lease */
-	ts = atoll16(buf);
+	/* 2. check current time is out of lease */
+	time_t key = 0;
+	time_t ts = atoll16(buf);
 	if (ts_now > ts)
 		key = ~0; /* out of lease, use bad key to decode */
 	else
 		key = ts - ((MAGICNUM) << 4) + get_secid();
 
-	/* decode the left chars, every 8 chars are handled */
-	if ((out = (char *)malloc(BUF_SIZE * sizeof (char))) == NULL)
-		goto cleanup;
-	(void) memset(out, 0, BUF_SIZE * sizeof (char));
+	/* 3. decode the left chars, every 32 chars are taken as 1 out-char */
+	uint32_t bufsize = strlen(str) / 32;
+	char *out = (char *)malloc(bufsize * sizeof(char));
+	if (out == NULL)
+		return;
+	(void)memset(out, 0, bufsize * sizeof(char));
 
-	i = 0;
-	p += 8;
+	char buf2[40] = { 0 }; /* only 32 bytes are requied */
+	int i = 0;
+	int j = 0;
+	int n = 0;
+	char *p = str + 32; /* the first 32 chars of str are time stamp */
 	while (*p != '\0') {
-		c = *p;
-		buf[i++] = c;
-		if (i == 8) {
-			i = 0;
-			out[j++] = (char)(atoll16(buf) - key + (n * 41 * 97));
+		char c = *p;
+		buf2[i++] = c;
+
+		if (i == 32) {
+			i = 0; /* reset i */
+
+			/* convert 32 bit-chars to 8 hex-chars */
+			for (int k = 0; k < 8; k++)
+				buf[k] = bitstr2hexchar(buf2 + 4 * k);
+			buf[8] = '\0';
+
+			/* encode */
+			out[j++] = atoll16(buf) - key + (n * (MAGICNUM));
 			n++;
 		}
+
 		p++;
 	}
 
-	p = out; /* reverse is 0 by default */
-	if (reverse != 0) {
-		i = strlen(out);
+	(void)printf("%s", out);
 
-		if ((out2 = (char *)malloc((i + 1) * sizeof (char))) == NULL)
-			goto cleanup;
-		(void) memset(out2, 0, (i + 1) * sizeof (char));
+	free(out);
+}
+#else
+static void
+do_encode(char *str, uint32_t lease)
+{
+	time_t ts = time(NULL) + lease;
+	time_t key = ts - ((MAGICNUM) << 4) + get_secid();
 
-		j = 0;
-		p = out;
-		while (i > 0) {
-			out2[j] = *(p + i - 1);
-			i--;
-			j++;
+	(void)printf("%08lx", ts); /* time stamp : 8 chars */
+
+	int i = 0;
+	char *p = str;
+	while (*p != '\0') {
+		char c = *p;
+		p++;
+
+		(void)printf("%08lx",
+		   c + key - (i * (MAGICNUM))); /* each char */
+		i++;
+	}
+}
+
+static void
+do_decode(char *str)
+{
+	char buf[16] = { 0 }; /* only 8 bytes are required */
+
+	/* 0. firstly get current time stamp */
+	time_t ts_now = time(NULL);
+
+	/* 1. read time stamp : 8 chars */
+	for (int i = 0; i < 8; i++)
+		buf[i] = *(str + i);
+
+	/* 2. check current time is out of lease */
+	time_t key = 0;
+	time_t ts = atoll16(buf);
+	if (ts_now > ts)
+		key = ~0; /* out of lease, use bad key to decode */
+	else
+		key = ts - ((MAGICNUM) << 4) + get_secid();
+
+	/* 3. decode the left chars, every 8 chars are taken as 1 out-char */
+	uint32_t bufsize = strlen(str) / 8;
+	char *out = (char *)malloc(bufsize * sizeof(char));
+	if (out == NULL)
+		return;
+	(void)memset(out, 0, bufsize * sizeof(char));
+
+	int i = 0;
+	int j = 0;
+	int n = 0;
+	char *p = str + 8; /* the first 8 chars of str are time stamp */
+	while (*p != '\0') {
+		char c = *p;
+		buf[i++] = c;
+
+		if (i == 8) {
+			i = 0; /* reset i */
+
+			/* encode */
+			out[j++] = atoll16(buf) - key + (n * (MAGICNUM));
+			n++;
 		}
 
-		p = out2;
+		p++;
 	}
 
-	(void) printf("%s\n", p);
+	(void)printf("%s", out);
 
-cleanup:
-	if (out != NULL)
-		free(out);
-	if (out2 != NULL)
-		free(out2);
+	free(out);
 }
+#endif
 
 static void
 usage(char *s)
 {
-	(void) fprintf(stderr, "Usage: %s <[-r] -d|-e> <string>\n", s);
-	(void) fprintf(stderr, "       -d : decode\n");
-	(void) fprintf(stderr, "       -e : encode\n");
-	(void) fprintf(stderr, "       -r : drvs when decoding\n");
+	(void)fprintf(stderr, "Usage: %s <-d|-e> [-l lease] "
+		      "<-f <file> | string>\n", s);
+	(void)fprintf(stderr, "       -d : decode\n");
+	(void)fprintf(stderr, "       -e : encode\n");
 }
 
 int
@@ -233,33 +375,91 @@ main(int argc, char **argv)
 	char *prog = argv[0];
 	char *str = NULL;
 
-	int drvs = 0;
 	uint32_t lease = KEY_LEASE;
 	char op = '\0';
 	int opt = -1;
-	while ((opt = getopt(argc, argv, "redl:h")) != -1) {
+	char *ftxt = NULL;
+	while ((opt = getopt(argc, argv, "edl:f:h")) != -1) {
 		switch (opt) {
-			/* -r: reverse string when decoding */
-			case 'r': drvs = 1; break;
-			case 'e': op = 'E'; break;
-			case 'd': op = 'D'; break;
+		case 'e':
+			op = 'E';
+			break;
+		case 'd':
+			op = 'D';
+			break;
 			/* -l: just for debugging */
-			case 'l': lease = (uint32_t)atoll10(optarg); break;
-			case 'h': usage(prog); return -1;
-			default:  break;
+		case 'l':
+			lease = (uint32_t) atoll10(optarg);
+			break;
+		case 'f':
+			ftxt = optarg;
+			break;
+		case 'h':
+			usage(prog);
+			return -1;
+		default:
+			break;
 		}
 	}
 
 	argc -= optind;
 	argv += optind;
 
-	if (argc < 1) {
-		usage(prog);
-		return -1;
-	}
+	if (ftxt != NULL) {
+		/* get file size */
+		struct stat buf;
+		if (stat(ftxt, &buf) < 0) {
+			(void)fprintf(stderr, "fail to stat file %s\n", ftxt);
+			return -1;
+		}
 
-	str = argv[0];
-	(op == 'D') ? do_decode(str, drvs) : do_encode(str, lease);
+		size_t fsize = buf.st_size;
+
+		/* alloc a buffer whose length = file size + 1 */
+		char *str = (char *)malloc(sizeof(char) * (fsize + 1));
+		if (str == NULL) {
+			(void)fprintf(stderr, "fail to malloc %lu bytes\n",
+				      (unsigned long)(fsize + 1));
+			return -1;
+		}
+
+		/* read all from file to buffer */
+		FILE *fp = fopen(ftxt, "r");
+		if (fp == NULL) {
+			(void)fprintf(stderr, "fail to open file %s\n", ftxt);
+			free(str);
+			return -1;
+		}
+
+		(void)fseek(fp, 0L, SEEK_SET);
+		size_t n = fread(str, 1, fsize, fp);
+		if (n != fsize) {
+			(void)fprintf(stderr, "fail to read %lu bytes"
+				      " from file %s",
+				      (unsigned long)(fsize + 1), ftxt);
+			free(str);
+			fclose(fp);
+			return -1;
+		}
+
+		fclose(fp);
+
+		/* do encode/decode */
+		*(str + fsize) = '\0';
+		(op == 'D') ? do_decode(str) : do_encode(str, lease);
+
+		/* free buffer */
+		free(str);
+	} else {
+		if (argc < 1) {
+			usage(prog);
+			return -1;
+		}
+
+		str = argv[0];
+		(op == 'D') ? do_decode(str) : do_encode(str, lease);
+		(void)printf("\n");
+	}
 
 	return 0;
 }
