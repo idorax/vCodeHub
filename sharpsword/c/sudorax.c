@@ -9,6 +9,9 @@
  *	If the encoded text is done by user A, and it can be decoded
  *	by user A only. The default lease of encoded text is 180s.
  *
+ *	In addition, please be noted that it doesn't support to encode
+ *	binary file.
+ *
  * o How to Build it
  *   Solaris : gcc -m64           -DMAGICNUM="N*M" -g -Wall -o sudorax sudorax.c
  *   Linux   : gcc -m32 -D__LINUX -DMAGICNUM="N*M" -g -Wall -o sudorax sudorax.c
@@ -198,7 +201,7 @@ bitstr2hexchar(char *s)
 	else if (n >= 10 && n <= 15)
 		return ('a' + n - 10);
 	else
-		return '\0'; /* should not reached */
+		return '\0'; /* should not be reached */
 }
 
 static void
@@ -217,18 +220,11 @@ do_encode(char *str, uint32_t lease)
 		free(p); \
 	} while (0)
 
-	ENCODE_CORE(buf, ts);
+	ENCODE_CORE(buf, ts); /* time stamp : 32 chars */
 
-	char *p = str;
-	int i = 0;
-	while (*p != '\0') {
-		char c = *p;
-		p++;
-
-		ENCODE_CORE(buf, c + key - (i * (MAGICNUM)));
-
-		i++;
-	}
+	uint32_t i = 0;
+	for(char *p = str; *p != '\0'; p++, i++)
+		ENCODE_CORE(buf, *p + key - (i * (MAGICNUM))); /* each char */
 }
 
 static void
@@ -259,13 +255,12 @@ do_decode(char *str)
 	(void)memset(out, 0, bufsize * sizeof(char));
 
 	char buf2[40] = { 0 }; /* only 32 bytes are requied */
-	int i = 0;
-	int j = 0;
-	int n = 0;
-	char *p = str + 32; /* the first 32 chars of str are time stamp */
-	while (*p != '\0') {
-		char c = *p;
-		buf2[i++] = c;
+	uint8_t  i = 0;
+	uint32_t j = 0;
+	uint32_t n = 0;
+	/* NOTE: the first 32 chars of str are time stamp */
+	for (char *p = str + 32; *p != '\0'; p++) {
+		buf2[i++] = *p;
 
 		if (i == 32) {
 			i = 0; /* reset i */
@@ -275,12 +270,10 @@ do_decode(char *str)
 				buf[k] = bitstr2hexchar(buf2 + 4 * k);
 			buf[8] = '\0';
 
-			/* encode */
+			/* decode */
 			out[j++] = atoll16(buf) - key + (n * (MAGICNUM));
 			n++;
 		}
-
-		p++;
 	}
 
 	(void)printf("%s", out);
@@ -296,16 +289,10 @@ do_encode(char *str, uint32_t lease)
 
 	(void)printf("%08lx", ts); /* time stamp : 8 chars */
 
-	int i = 0;
-	char *p = str;
-	while (*p != '\0') {
-		char c = *p;
-		p++;
-
+	uint32_t i = 0;
+	for(char *p = str; *p != '\0'; p++, i++)
 		(void)printf("%08lx",
-		   c + key - (i * (MAGICNUM))); /* each char */
-		i++;
-	}
+		   *p + key - (i * (MAGICNUM))); /* each char */
 }
 
 static void
@@ -335,23 +322,20 @@ do_decode(char *str)
 		return;
 	(void)memset(out, 0, bufsize * sizeof(char));
 
-	int i = 0;
-	int j = 0;
-	int n = 0;
-	char *p = str + 8; /* the first 8 chars of str are time stamp */
-	while (*p != '\0') {
-		char c = *p;
-		buf[i++] = c;
+	uint8_t  i = 0;
+	uint32_t j = 0;
+	uint32_t n = 0;
+	/* NOTE: the first 8 chars of str are time stamp */
+	for (char *p = str + 8; *p != '\0'; p++) {
+		buf[i++] = *p;
 
 		if (i == 8) {
 			i = 0; /* reset i */
 
-			/* encode */
+			/* decode */
 			out[j++] = atoll16(buf) - key + (n * (MAGICNUM));
 			n++;
 		}
-
-		p++;
 	}
 
 	(void)printf("%s", out);
