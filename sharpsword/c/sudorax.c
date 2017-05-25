@@ -13,8 +13,10 @@
  *	binary file.
  *
  * o How to Build it
- *   Solaris : gcc -m64           -DMAGICNUM="N*M" -g -Wall -o sudorax sudorax.c
- *   Linux   : gcc -m32 -D__LINUX -DMAGICNUM="N*M" -g -Wall -o sudorax sudorax.c
+ *   Solaris : gcc -m64           -DMAGICNUM="N*M" -g -Wall \
+ *             -std=gnu99 -o sudorax sudorax.c
+ *   Linux   : gcc -m32 -D__LINUX -DMAGICNUM="N*M" -g -Wall \
+ *             -std=gnu99 -o sudorax sudorax.c
  *
  * o Usage Example
  *   By default,
@@ -56,6 +58,8 @@ typedef unsigned char		uint8_t;
 #ifndef MAGICNUM
 #define MAGICNUM	(0x9741)	/* magic num to decode/encode */
 #endif
+
+uint32_t g_magicnum = MAGICNUM;
 
 static uint64_t
 power(int32_t n, uint32_t m)
@@ -119,7 +123,7 @@ get_secid()
 	char *p = pwd->pw_name;
 	while (*p != '\0') {
 		n += *p;
-		n += (i * (MAGICNUM)) % *p;
+		n += (i * g_magicnum) % *p;
 		p++;
 		i++;
 	}
@@ -208,7 +212,7 @@ static void
 do_encode(char *str, uint32_t lease)
 {
 	time_t ts = time(NULL) + lease;
-	time_t key = ts - ((MAGICNUM) << 4) + get_secid();
+	time_t key = ts - (g_magicnum << 4) + get_secid();
 
 	char buf[16] = { 0 }; /* only 8 bytes are required */
 
@@ -224,7 +228,7 @@ do_encode(char *str, uint32_t lease)
 
 	uint32_t i = 0;
 	for(char *p = str; *p != '\0'; p++, i++)
-		ENCODE_CORE(buf, *p + key - (i * (MAGICNUM))); /* each char */
+		ENCODE_CORE(buf, *p + key - (i * g_magicnum)); /* each char */
 }
 
 static void
@@ -245,7 +249,7 @@ do_decode(char *str)
 	if (ts_now > ts)
 		key = ~0; /* out of lease, use bad key to decode */
 	else
-		key = ts - ((MAGICNUM) << 4) + get_secid();
+		key = ts - (g_magicnum << 4) + get_secid();
 
 	/* 3. decode the left chars, every 32 chars are taken as 1 out-char */
 	uint32_t bufsize = strlen(str) / 32;
@@ -271,7 +275,7 @@ do_decode(char *str)
 			buf[8] = '\0';
 
 			/* decode */
-			out[j++] = atoll16(buf) - key + (n * (MAGICNUM));
+			out[j++] = atoll16(buf) - key + (n * g_magicnum);
 			n++;
 		}
 	}
@@ -285,14 +289,14 @@ static void
 do_encode(char *str, uint32_t lease)
 {
 	time_t ts = time(NULL) + lease;
-	time_t key = ts - ((MAGICNUM) << 4) + get_secid();
+	time_t key = ts - (g_magicnum << 4) + get_secid();
 
 	(void)printf("%08lx", ts); /* time stamp : 8 chars */
 
 	uint32_t i = 0;
 	for(char *p = str; *p != '\0'; p++, i++)
 		(void)printf("%08lx",
-		   *p + key - (i * (MAGICNUM))); /* each char */
+		   *p + key - (i * g_magicnum)); /* each char */
 }
 
 static void
@@ -313,7 +317,7 @@ do_decode(char *str)
 	if (ts_now > ts)
 		key = ~0; /* out of lease, use bad key to decode */
 	else
-		key = ts - ((MAGICNUM) << 4) + get_secid();
+		key = ts - (g_magicnum << 4) + get_secid();
 
 	/* 3. decode the left chars, every 8 chars are taken as 1 out-char */
 	uint32_t bufsize = strlen(str) / 8;
@@ -333,7 +337,7 @@ do_decode(char *str)
 			i = 0; /* reset i */
 
 			/* decode */
-			out[j++] = atoll16(buf) - key + (n * (MAGICNUM));
+			out[j++] = atoll16(buf) - key + (n * g_magicnum);
 			n++;
 		}
 	}
@@ -347,7 +351,7 @@ do_decode(char *str)
 static void
 usage(char *s)
 {
-	(void)fprintf(stderr, "Usage: %s <-d|-e> [-l lease] "
+	(void)fprintf(stderr, "Usage: %s <-d|-e> [-l lease] [-m magicnum] "
 		      "<-f <file> | string>\n", s);
 	(void)fprintf(stderr, "       -d : decode\n");
 	(void)fprintf(stderr, "       -e : encode\n");
@@ -363,7 +367,7 @@ main(int argc, char **argv)
 	char op = '\0';
 	int opt = -1;
 	char *ftxt = NULL;
-	while ((opt = getopt(argc, argv, "edl:f:h")) != -1) {
+	while ((opt = getopt(argc, argv, "edm:l:f:h")) != -1) {
 		switch (opt) {
 		case 'e':
 			op = 'E';
@@ -371,9 +375,11 @@ main(int argc, char **argv)
 		case 'd':
 			op = 'D';
 			break;
-			/* -l: just for debugging */
+		case 'm':
+			g_magicnum = (uint32_t)atoll10(optarg);
+			break;
 		case 'l':
-			lease = (uint32_t) atoll10(optarg);
+			lease = (uint32_t)atoll10(optarg);
 			break;
 		case 'f':
 			ftxt = optarg;
