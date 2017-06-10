@@ -26,4 +26,14 @@ runit "./sudorax -d -f /tmp/foo.out > /tmp/foo.c"
 runit "diff ./sudorax.c /tmp/foo.c && echo OKAY || echo Oops"
 rm -f /tmp/foo.out /tmp/foo.c
 
+runit "./binhex -p XXXpassw0rd -e /bin/ls > /tmp/ls.out"
+runit "./binhex -p XXXpassw0rd -o /tmp/ls -d /tmp/ls.out"
+runit "md5sum /bin/ls /tmp/ls"
+runit "diff /bin/ls /tmp/ls && echo OKAY || echo Oops"
+
+runit "./binhex -p xxxpassword -o /tmp/ls -d /tmp/ls.out"
+runit "md5sum /bin/ls /tmp/ls"
+runit "diff /bin/ls /tmp/ls && echo OKAY || echo Oops"
+rm -f /tmp/ls.out /tmp/ls
+
 exit 0

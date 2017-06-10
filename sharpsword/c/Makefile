@@ -5,10 +5,14 @@
 CC	=  gcc
 CFLAGS	+= -g -Wall -m32 -std=gnu99 -D__LINUX
 
-all: sudorax \
+all:	sudorax \
+	binhex \
 	test
 
 sudorax: sudorax.c
+	${CC} ${CFLAGS} -o $@ $<
+
+binhex: binhex.c
 	${CC} ${CFLAGS} -o $@ $<
 
 test: test.sh
@@ -18,5 +22,6 @@ clean:
 	rm -f *.o
 clobber: clean
 	rm -f sudorax
+	rm -f binhex
 	rm -f test
 cl: clobber
