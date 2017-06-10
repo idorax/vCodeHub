@@ -3,12 +3,15 @@
  */
 
 /**
- * Dump binary file in hex format and convert it back to binary file.
+ * Dump file in hex format and convert it back. Note it supports to
+ * encode/decode with password which can be specified by user.
  *
  * NOTE:
  *      1. base64(1) and binhex module in Python do the similar work.
  *      2. We can also use hexdump(1) or od(1) to dump binary file
- *         in hex format.
+ *         in hex format but both hexdump(1) and od(1) don't support
+ *         to encode with password. However, this one supports to
+ *         encode/decode any file including binary file with password.
  */
 
 #include <stdio.h>
@@ -59,7 +62,7 @@ atoll16(char *s)
 	return n;
 }
 
-static uint32_t
+static uint16_t
 get_secid(char *password)
 {
 	uint32_t n = strlen(password);
@@ -69,7 +72,7 @@ get_secid(char *password)
 		char c2 = *(password + n - 1 - i);
 		m += c1 * c2 * (i + 1);
 	}
-	return m % 0x7fff;
+	return (m % 0x7fff);
 }
 
 static int
@@ -79,7 +82,7 @@ bh_encode(int argc, char *argv[])
 		return -1;
 
 	/* get secid */
-	uint8_t secid = get_secid(g_password);
+	uint16_t secid = get_secid(g_password);
 
 	char *fbin = argv[0];
 
@@ -98,7 +101,8 @@ bh_encode(int argc, char *argv[])
 		return -1;
 	}
 
-	printf("%016lx", buf.st_size); /* size_t is __off_t (long int) */
+	/* NOTE: size_t is __off_t (long int), so we use 16 bytes right here */
+	printf("%016lx", buf.st_size);
 
 	/* read the file byte by byte, and print as hex */
 	for (size_t i = 0; i < buf.st_size; i++) {
@@ -111,6 +115,13 @@ bh_encode(int argc, char *argv[])
 			goto done;
 		}
 	}
+
+	/* append some dummy data as signature */
+	char sigbuf[32]; /* DO NOT INITIALIZE ON PURPOSE */
+	snprintf(sigbuf, sizeof(sigbuf), "%04X%016lX", secid, buf.st_size);
+	for (size_t i = 0; i < sizeof(sigbuf); i++)
+		printf("%x", sigbuf[i] + i * i);
+
 	printf("\n");
 
 done:
@@ -128,7 +139,7 @@ bh_decode(int argc, char *argv[])
 	int rc = 0;
 
 	/* get secid */
-	uint8_t secid = get_secid(g_password);
+	uint16_t secid = get_secid(g_password);
 
 	/* open file */
 	int fd1 = open(fhex, O_RDONLY);
