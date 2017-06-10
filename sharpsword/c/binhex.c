@@ -107,11 +107,12 @@ bh_encode(int argc, char *argv[])
 	/* read the file byte by byte, and print as hex */
 	for (size_t i = 0; i < buf.st_size; i++) {
 		uint8_t b = '\0';
-		rc = read(fd, (void *)&b, 1);
-		if (rc == 1) {
+		uint8_t nbytes = 1;
+		rc = read(fd, (void *)&b, nbytes);
+		if (rc == nbytes) {
 			printf("%04x", (b << 4) + secid);
 		} else {
-			fprintf(stderr, "FATAL: fail to read 1B\n");
+			fprintf(stderr, "FATAL: fail to read %dB\n", nbytes);
 			goto done;
 		}
 	}
@@ -168,18 +169,20 @@ bh_decode(int argc, char *argv[])
 		goto done1;
 	}
 
-	/* read the left every 4 bytes from fd1 and write to fd2 */
+	/* read the left from fd1 then write to fd2 */
 	for (size_t i = 0; i < fsize; i++) {
 		buf[0] = buf[1] = buf[2] = buf[3] = buf[4] = '\0';
 
-		/* read from fd1 */
-		rc = read(fd1, (void *)buf, 4);
-		if (rc != 4) {
-			fprintf(stderr, "fail to read 2B from fd %d\n", fd1);
+		/* read 4 bytes from fd1 */
+		uint8_t nbytes = 4;
+		rc = read(fd1, (void *)buf, nbytes);
+		if (rc != nbytes) {
+			fprintf(stderr, "fail to read %dB from fd %d\n",
+			    nbytes, fd1);
 			goto done2;
 		}
 
-		/* write to fd2 */
+		/* then write 1 byte to fd2 */
 		uint32_t n = 0;
 		sscanf(buf, "%x", &n);
 		uint8_t b = (n - secid) >> 4;
