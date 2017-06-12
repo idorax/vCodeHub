@@ -4,7 +4,7 @@
 
 TARGETS	= icodeadm \
 	  ipyman \
-	  ibase64m \
+	  ibase64 \
 	  dos2unix
 
 all: $(TARGETS)
@@ -17,7 +17,7 @@ ipyman: ipyman.py
 	cp $< $@
 	chmod +x $@
 
-ibase64m: ibase64m.py
+ibase64: ibase64.py
 	cp $< $@
 	chmod +x $@
 
