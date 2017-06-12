@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright (C) 2015, 2017, Vector Li (idorax@126.com)
+# Copyright (C) 2015, 2017, Vector Li (idorax@126.com). All rights reserved.
 #
 
 """

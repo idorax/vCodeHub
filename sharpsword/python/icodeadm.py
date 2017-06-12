@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (C) 2012, Vector Li (idorax@126.com)
+# Copyright (C) 2012, Vector Li (idorax@126.com). All rights reserved.
 #
 
 """ icodeadm - check or format print source files """
