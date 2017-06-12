@@ -3,9 +3,7 @@
 # Copyright (C) 2017, Vector Li (idorax@126.com). All rights reserved.
 #
 
-"""
-ibase64m - encode/decode ASCII text created by base64(1) with password
-"""
+""" encode/decode ASCII text created by base64(1) with password """
 
 import sys
 
@@ -28,7 +26,7 @@ def sumasii(s):
 		i += 1
 	return m
 
-def do_encode(secid, s):
+def encode(secid, s):
 	nwrap = g_default_wrap_width
 
 	if len(s) != nwrap:
@@ -39,7 +37,7 @@ def do_encode(secid, s):
 	c = s[n]
 	return c + s[0:n] + s[n+1:]
 
-def do_decode(secid, s):
+def decode(secid, s):
 	nwrap = g_default_wrap_width
 
 	if len(s) != nwrap:
@@ -49,17 +47,7 @@ def do_decode(secid, s):
 	n = (m % nwrap + secid % nwrap) / 2
 	c = s[0]
 	s1 = s[1:]
-	return s1[0:n] + c +s1[n:]
-
-def encode(secid, f):
-	with open(f, 'r') as fd:
-		for line in fd.readlines():
-			print do_encode(secid, line.rstrip())
-
-def decode(secid, f):
-	with open(f, 'r') as fd:
-		for line in fd.readlines():
-			print do_decode(secid, line.rstrip())
+	return s1[0:n] + c + s1[n:]
 
 def main(argc, argv):
 	if argc != 4:
@@ -67,11 +55,19 @@ def main(argc, argv):
 				 argv[0]);
 		return 1
 
-	secid = getsecid(argv[1])
-	if argv[2].upper() == 'E':
-		encode(secid, argv[3])
+	password = argv[1]
+	op = argv[2]
+	fb = argv[3]
+
+	secid = getsecid(password)
+	if op.upper() == 'E':
+		with open(fb, 'r') as fd:
+			for line in fd.readlines():
+				print encode(secid, line.rstrip())
 	else:
-		decode(secid, argv[3])
+		with open(fb, 'r') as fd:
+			for line in fd.readlines():
+				print decode(secid, line.rstrip())
 
 	return 0
 
