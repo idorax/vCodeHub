@@ -428,7 +428,7 @@ function showaid_present
 #	show_eth_info [[-p] [-o <field>,...] [eth]|-h]
 #
 # DESCRIPTION
-#	Body of eth_info [[-p] [-o <field>,...] [eth]|-h]
+#	Body of ethinfo [[-p] [-o <field>,...] [eth]|-h]
 #
 # EXAMPLES
 #	Example 1: show_eth_info
@@ -499,8 +499,10 @@ function show_eth_info
 	s_fd_def+="DEVICEID:"
 	s_fd_def+="VENDORID:"
 	s_fd_def+="MTU:"
+	s_fd_def+="SPEED:"
 	s_fd_def+="BDF:"
-	s_fd_def+="DRIVER"
+	s_fd_def+="DRIVER:"
+	s_fd_def+="IPv4"
 
 	# if '-o ..." is specified, all FDs should be included
 	s_fd=$s_fd_def
@@ -530,6 +532,12 @@ function show_eth_info
 		    egrep -i 'Link detected: yes' > /dev/null 2>&1
 		(( $? == 0 )) && state="up"
 
+		typeset ipv4=""
+		if [[ $state == "up" ]]; then
+			ipv4=$(ip addr show dev $eth | \
+			    egrep 'inet ' | awk '{print $2}')
+		fi
+
 		typeset f_device=$eth_root/device/device
 		typeset device_id=""
 		[[ -f $f_device ]] && device_id=$(cat $f_device)
@@ -541,6 +549,12 @@ function show_eth_info
 		typeset f_mtu=$eth_root/mtu
 		typeset mtu=""
 		[[ -f $f_mtu ]] && mtu=$(cat $f_mtu)
+
+		typeset speed=""
+		if [[ $state == "up" ]]; then
+			speed=$(ethtool $eth 2>/dev/null | \
+			    egrep "Speed:.*b/s" | awk '{print $2}')
+		fi
 
 		typeset f_bdf=$eth_root/device
 		typeset bdf=$(readlink $f_bdf)
@@ -554,6 +568,13 @@ function show_eth_info
 		typeset driver=$(readlink $f_driver)
 		if [[ -n $driver ]]; then
 			driver=${driver#*/bus/}
+			if [[ $driver != "usb/"* ]]; then
+				driver=$(ethtool -i $eth | \
+				    egrep -i '^driver:' | awk '{print $NF}')
+			fi
+		else
+			driver=$(ethtool -i $eth | \
+			    egrep -i '^driver:' | awk '{print $NF}')
 		fi
 
 		typeset out=""
@@ -563,8 +584,10 @@ function show_eth_info
 		out+=":$device_id"
 		out+=":$vendor_id"
 		out+=":$mtu"
+		out+=":$speed"
 		out+=":$bdf"
 		out+=":$driver"
+		out+=":$ipv4"
 		echo ${out#:} >> $f_out
 	done
 
