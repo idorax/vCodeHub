@@ -5,7 +5,8 @@
 TARGETS	= imod \
 	  getCOperators \
 	  vmw \
-	  ethinfo
+	  ethinfo \
+	  lsgen
 
 all: $(TARGETS)
 
