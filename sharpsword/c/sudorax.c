@@ -21,15 +21,15 @@
  * o Usage Example
  *   By default,
  *       host1$ ./sudorax -e E
- *       0101100100100100111111010010000101011001001001000000011100110100
+ *       010110010110001000000011100100010000000000111010100011010101110001011001010110001001000111000011
  *       host2$ ./sudorax -d \
- *       0101100100100100111111010010000101011001001001000000011100110100
+ *       010110010110001000000011100100010000000000111010100011010101110001011001010110001001000111000011
  *       E
  *
  *   If -D_USE_HEX is spedified,
  *       host1$ ./sudorax -e foo
- *       58a2a0dd58a1ab1158a19b9158a18c08
- *       host2$ ./sudorax -d 58a2a0dd58a1ab1158a19b9158a18c08
+ *       596215cc003ab4c45958a41f59580ce7595775a6
+ *       host2$ ./sudorax -d 596215cc003ab4c45958a41f59580ce7595775a6
  *       foo
  */
 
@@ -211,8 +211,10 @@ bitstr2hexchar(char *s)
 static void
 do_encode(char *str, uint32_t lease)
 {
-	time_t ts = time(NULL) + lease;
-	time_t key = ts - (g_magicnum << 4) + get_secid();
+	time_t ts_now = time(NULL);
+	time_t ts1 = ts_now - (g_magicnum << 4);
+	time_t ts2 = ts_now + lease;
+	time_t key = ts2 - (g_magicnum << 4) + get_secid();
 
 	char buf[16] = { 0 }; /* only 8 bytes are required */
 
@@ -224,7 +226,8 @@ do_encode(char *str, uint32_t lease)
 		free(p); \
 	} while (0)
 
-	ENCODE_CORE(buf, ts); /* time stamp : 32 chars */
+	ENCODE_CORE(buf, ts2);         /* time stamp 1: 32 chars */
+	ENCODE_CORE(buf, (ts2 ^ ts1)); /* time stamp 2: 32 chars */
 
 	uint32_t i = 0;
 	for(char *p = str; *p != '\0'; p++, i++)
@@ -239,17 +242,30 @@ do_decode(char *str)
 	/* 0. firstly get current time stamp */
 	time_t ts_now = time(NULL);
 
-	/* 1. read time stamp : 32 chars */
+	/* 1a. read time stamp 1 : 32 chars */
 	for (int i = 0; i < 8; i++)
 		buf[i] = bitstr2hexchar(str + 4 * i);
+	time_t ts1 = atoll16(buf);
 
-	/* 2. check current time is out of lease */
+	/* 1b. read time stamp 2 : 32 chars */
+	memset(buf, 0, sizeof(buf));
+	for (int i = 0; i < 8; i++)
+		buf[i] = bitstr2hexchar(str + 32 + 4 * i);
+	time_t ts2 = ((time_t)atoll16(buf) ^ ts1) + (time_t)(g_magicnum << 4);
+
+	/* 2a. check current time is out of lease */
 	time_t key = 0;
-	time_t ts = atoll16(buf);
-	if (ts_now > ts)
+	if (ts_now > ts1)
 		key = ~0; /* out of lease, use bad key to decode */
 	else
-		key = ts - (g_magicnum << 4) + get_secid();
+		key = ts1 - (g_magicnum << 4) + get_secid();
+
+	/*
+	 * 2b. make sure current time is not invalid in case someone once
+	 *     reset the system time to long-long-ago before decoding
+	 */
+	if (ts_now < ts2)
+		key = ~0; /* invalid system time, also use bad key to decode */
 
 	/* 3. decode the left chars, every 32 chars are taken as 1 out-char */
 	uint32_t bufsize = strlen(str) / 32;
@@ -262,8 +278,8 @@ do_decode(char *str)
 	uint8_t  i = 0;
 	uint32_t j = 0;
 	uint32_t n = 0;
-	/* NOTE: the first 32 chars of str are time stamp */
-	for (char *p = str + 32; *p != '\0'; p++) {
+	/* NOTE: the first 32 * 2 chars of str are time stamp */
+	for (char *p = str + 32 * 2; *p != '\0'; p++) {
 		buf2[i++] = *p;
 
 		if (i == 32) {
@@ -284,14 +300,17 @@ do_decode(char *str)
 
 	free(out);
 }
-#else
+#else /* _USE_HEX */
 static void
 do_encode(char *str, uint32_t lease)
 {
-	time_t ts = time(NULL) + lease;
-	time_t key = ts - (g_magicnum << 4) + get_secid();
+	time_t ts_now = time(NULL);
+	time_t ts1 = ts_now - (g_magicnum << 4);
+	time_t ts2 = ts_now + lease;
+	time_t key = ts2 - (g_magicnum << 4) + get_secid();
 
-	(void)printf("%08lx", ts); /* time stamp : 8 chars */
+	(void)printf("%08lx", ts2);         /* time stamp 1: 8 chars */
+	(void)printf("%08lx", (ts2 ^ ts1)); /* time stamp 2: 8 chars */
 
 	uint32_t i = 0;
 	for(char *p = str; *p != '\0'; p++, i++)
@@ -307,17 +326,30 @@ do_decode(char *str)
 	/* 0. firstly get current time stamp */
 	time_t ts_now = time(NULL);
 
-	/* 1. read time stamp : 8 chars */
+	/* 1a. read time stamp 1 : 8 chars */
 	for (int i = 0; i < 8; i++)
 		buf[i] = *(str + i);
+	time_t ts1 = atoll16(buf);
 
-	/* 2. check current time is out of lease */
+	/* 1b. read time stamp 2 : 8 chars */
+	memset(buf, 0, sizeof(buf));
+	for (int i = 0; i < 8; i++)
+		buf[i] = *(str + 8 + i);
+	time_t ts2 = ((time_t)atoll16(buf) ^ ts1) + (time_t)(g_magicnum << 4);
+
+	/* 2a. check current time is out of lease */
 	time_t key = 0;
-	time_t ts = atoll16(buf);
-	if (ts_now > ts)
+	if (ts_now > ts1)
 		key = ~0; /* out of lease, use bad key to decode */
 	else
-		key = ts - (g_magicnum << 4) + get_secid();
+		key = ts1 - (g_magicnum << 4) + get_secid();
+
+	/*
+	 * 2b. make sure current time is not invalid in case someone once
+	 *     reset the system time to long-long-ago before decoding
+	 */
+	if (ts_now < ts2)
+		key = ~0; /* invalid system time, also use bad key to decode */
 
 	/* 3. decode the left chars, every 8 chars are taken as 1 out-char */
 	uint32_t bufsize = strlen(str) / 8;
@@ -329,8 +361,8 @@ do_decode(char *str)
 	uint8_t  i = 0;
 	uint32_t j = 0;
 	uint32_t n = 0;
-	/* NOTE: the first 8 chars of str are time stamp */
-	for (char *p = str + 8; *p != '\0'; p++) {
+	/* NOTE: the first 8 * 2 chars of str are time stamp */
+	for (char *p = str + 8 * 2; *p != '\0'; p++) {
 		buf[i++] = *p;
 
 		if (i == 8) {
