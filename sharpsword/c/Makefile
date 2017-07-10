@@ -3,7 +3,7 @@
 #
 
 CC	=  gcc
-CFLAGS	+= -g -Wall -m32 -std=gnu99 -D__LINUX
+CFLAGS	+= -g -Wall -std=gnu99 -D__LINUX
 
 all:	sudorax \
 	binhex \

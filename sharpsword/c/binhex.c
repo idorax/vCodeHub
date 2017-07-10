@@ -30,6 +30,8 @@ typedef unsigned long long	uint64_t;
 char *g_outfile = NULL;
 char *g_password = "@"__FILE__";0x12345ABCDE";
 
+#define O_WIDTH 80 /* default width of output after encoding */
+
 static uint64_t
 power(int32_t n, uint32_t m)
 {
@@ -102,7 +104,9 @@ bh_encode(int argc, char *argv[])
 	}
 
 	/* NOTE: size_t is __off_t (long int), so we use 16 bytes right here */
-	printf("%016lx", buf.st_size);
+	int count = O_WIDTH;
+	int n = printf("%016lx", buf.st_size);
+	count -= n;
 
 	/* read the file byte by byte, and print as hex */
 	for (size_t i = 0; i < buf.st_size; i++) {
@@ -110,7 +114,12 @@ bh_encode(int argc, char *argv[])
 		uint8_t nbytes = 1;
 		rc = read(fd, (void *)&b, nbytes);
 		if (rc == nbytes) {
-			printf("%04x", (b << 4) + secid);
+			n = printf("%04x", (b << 4) + secid);
+			count -= n;
+			if (count == 0) {
+				printf("\n");
+				count = O_WIDTH;
+			}
 		} else {
 			fprintf(stderr, "FATAL: fail to read %dB\n", nbytes);
 			goto done;
@@ -118,11 +127,8 @@ bh_encode(int argc, char *argv[])
 	}
 
 	/* append some dummy data as signature */
-	char sigbuf[32]; /* DO NOT INITIALIZE ON PURPOSE */
-	snprintf(sigbuf, sizeof(sigbuf), "%04X%016lX", secid, buf.st_size);
-	for (size_t i = 0; i < sizeof(sigbuf); i++)
-		printf("%x", sigbuf[i] + i * i);
-
+	for (int i = 0; i < count / 4; i++)
+		printf("%04x", ((i << 4) ^ (secid >> 4)) & 0xffff);
 	printf("\n");
 
 done:
@@ -180,6 +186,26 @@ bh_decode(int argc, char *argv[])
 			fprintf(stderr, "fail to read %dB from fd %d\n",
 			    nbytes, fd1);
 			goto done2;
+		}
+
+		/* if buf[] includes '\n', read one more byte */
+		uint8_t index = nbytes;
+		for (uint8_t j = 0; j < nbytes; j++) {
+			if (buf[j] == '\n') {
+				index = j;
+				break;
+			}
+		}
+		if (index != nbytes) {
+			for (uint8_t j = index; j < nbytes - 1; j++)
+				buf[j] = buf[j+1];
+
+			rc = read(fd1, &buf[3], 1);
+			if (rc != 1) {
+				fprintf(stderr, "fail to read 1B from fd %d\n",
+				    fd1);
+				goto done2;
+			}
 		}
 
 		/* then write 1 byte to fd2 */
