@@ -112,6 +112,22 @@ atoll10(char *s)
 }
 
 static uint32_t
+password2magicnum(char *password)
+{
+	uint32_t n = strlen(password);
+	if (n == 0)
+		return ~0;
+
+	uint32_t m = 0;
+	for (int i = 0; i < n; i++) {
+		char c1 = *(password + i);
+		char c2 = *(password + n - 1 - i);
+		m += (c1 * i + 1) - (c2 ^ (i << 24));
+	}
+	return m;
+}
+
+static uint32_t
 get_secid()
 {
 	struct passwd *pwd = NULL;
@@ -383,7 +399,7 @@ do_decode(char *str)
 static void
 usage(char *s)
 {
-	(void)fprintf(stderr, "Usage: %s <-d|-e> [-l lease] [-m magicnum] "
+	(void)fprintf(stderr, "Usage: %s <-d|-e> [-l lease] [-p password] "
 		      "<-f <file> | string>\n", s);
 	(void)fprintf(stderr, "       -d : decode\n");
 	(void)fprintf(stderr, "       -e : encode\n");
@@ -399,7 +415,7 @@ main(int argc, char **argv)
 	char op = '\0';
 	int opt = -1;
 	char *ftxt = NULL;
-	while ((opt = getopt(argc, argv, "edm:l:f:h")) != -1) {
+	while ((opt = getopt(argc, argv, "edp:l:f:h")) != -1) {
 		switch (opt) {
 		case 'e':
 			op = 'E';
@@ -407,8 +423,8 @@ main(int argc, char **argv)
 		case 'd':
 			op = 'D';
 			break;
-		case 'm':
-			g_magicnum = (uint32_t)atoll10(optarg);
+		case 'p':
+			g_magicnum = (uint32_t)password2magicnum(optarg);
 			break;
 		case 'l':
 			lease = (uint32_t)atoll10(optarg);
