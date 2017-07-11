@@ -34,6 +34,12 @@
 #    eth1:10.158.0.0
 #    eth0:100.0.0.0
 #
+#    $ route | sed '1d' | tr -s ' ' ':' | ./lsgen -o iface,destination,iface
+#    Iface Destination Iface
+#    eth1  default     eth1
+#    eth1  10.158.0.0  eth1
+#    eth0  100.0.0.0   eth0
+#
 
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
 export PATH=$PATH
@@ -447,6 +453,11 @@ function showaid_present
 
 # __XXX_LIBCORE.SH__ # END
 
+function usage
+{
+	echo "Usage: $g_name [[[-p] -o field[,...]] [text file]|-h]" >&2
+}
+
 function main
 {
 	typeset func="main"
@@ -472,7 +483,17 @@ function main
 		esac
 	done
 
-	typeset f_out=${1?"*** text file to display ***"}
+	if [[ -n $1 ]]; then
+		typeset f_out=$1
+	else
+		typeset f_out=$TMPDIR/$NAME.stdin.$$
+		timeout 10 cat /dev/stdin > $f_out
+		if (( $? != 0 )); then
+			usage $g_name
+			return 1
+		fi
+	fi
+
 	typeset s_fd=$(head -1 $f_out)
 
 	# validate -p and -o
@@ -488,7 +509,6 @@ function main
 	else
 		cat $f_out > $f_tmp
 	fi
-
 
 	showaid_present $f_tmp $p_flag "$o_flag" $s_fd || return 1
 	return 0
