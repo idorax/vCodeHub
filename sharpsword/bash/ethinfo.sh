@@ -266,11 +266,11 @@ function ishow
 		else
 			if [[ -n $utag ]]; then
 				[[ $line != *"$utag"* ]] && \
-				    str2gray "$line" || \
+				    str2cyan "$line" || \
 				    str2magenta "$line"
 			else
 				(( i % 2 == 0 )) && \
-				    str2gray "$line" || \
+				    str2cyan "$line" || \
 				    str2magenta "$line"
 			fi
 		fi
@@ -532,11 +532,8 @@ function show_eth_info
 		    egrep -i 'Link detected: yes' > /dev/null 2>&1
 		(( $? == 0 )) && state="up"
 
-		typeset ipv4=""
-		if [[ $state == "up" ]]; then
-			ipv4=$(ip addr show dev $eth | \
-			    egrep 'inet ' | awk '{print $2}')
-		fi
+		typeset ipv4=$(ip addr show dev $eth | \
+		    egrep 'inet ' | awk '{print $2}')
 
 		typeset f_device=$eth_root/device/device
 		typeset device_id=""
