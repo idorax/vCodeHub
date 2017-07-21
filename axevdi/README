@@ -11,6 +11,13 @@
 1.2 decode
         $ sudo apt-get install python-zbar
 
+1.3 view screenshot
+        $ sudo apt-get install eog
+
+1.4 save screenshot
+        $ sudo apt-get install shutter
+
+
 2 Howto
 ================================================================================
 
@@ -19,12 +26,28 @@
         $ mkdir /tmp/ls.sandbox
         $ ./av_encode /tmp/ls.sandbox/ls:5 /tmp/ls.base64a.out
 
-2.2 To decode, e.g.
+2.2 To post inside  the jail, e.g.
+        t1$ ./av_post_img /tmp/ls.sandbox/ 5
+        t2$ touch /tmp/_start
+
+2.3 To poll outside the jail, e.g.
+        t1$ ./av_poll_img /tmp/ls.sandbox/ 1
+        t2$ touch /tmp/_start
+
+2.4 To decode, e.g.
         $ D=/tmp/ls.sandbox
         $ F=/tmp/ls.base64t.out
         $ > $F
-        $ for f in $(ls -1 $D/ls*.png); do ./av_decode $f >> $F; done
+        $ for f in $(ls -1 $D/*.png); do ./av_decode $f >> $F; done
         $ ./av_amend $F | awk '{print $F}' > /tmp/ls.base64b.out
+
+    If there are duplicated lines in /tmp/ls.base64b.out, please
+        $ ./av_uniq /tmp/ls.base64b.out > /tmp/ls.base64c.out
+        $ cp /tmp/ls.base64c.out /tmp/ls.base64b.out
+
+    And verify /tmp/ls.base64b.out doesn't have any missing line,
+        $ ./av_verify /tmp/ls.base64b.out
+    If any line is missing, please correct it manually.
 
         $ diff /tmp/ls.base64a.out /tmp/ls.base64b.out
         ==> should be the same
@@ -32,5 +55,24 @@
         $ cat /tmp/ls.base64b.out | awk '{print $NF}' | base64 -d > /tmp/ls
         $ diff /bin/ls /tmp/ls
         ==> should be the same too
+
+
+3. Other choice
+================================================================================
+        pytesseract works, but its false recognition rate is pretty high.
+
+        To use pytesseract, please install packages in the following,
+
+        $ sudo apt-get install tesseract-ocr
+        $ sudo apt-get install python-pip
+        $ sudo pip install pytesseract
+
+        And here is an example,
+
+        >>> import Image
+        >>> import pytesseract
+        >>> img = Image.open("/tmp/foo.png")
+        >>> txt = pytesseract.image_to_string(img)
+        >>> print txt
 
 # EOF
