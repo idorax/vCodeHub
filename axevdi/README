@@ -27,12 +27,10 @@
         $ ./av_encode /tmp/ls.sandbox/ls:5 /tmp/ls.base64a.out
 
 2.2 To post inside  the jail, e.g.
-        t1$ ./av_post_img /tmp/ls.sandbox/ 5
-        t2$ touch /tmp/_start
+        $ ./av_post_img /tmp/ls.sandbox/ 5
 
 2.3 To poll outside the jail, e.g.
-        t1$ ./av_poll_img /tmp/ls.sandbox/ 1
-        t2$ touch /tmp/_start
+        $ ./av_poll_img /tmp/ls.sandbox/ 1
 
 2.4 To decode, e.g.
         $ D=/tmp/ls.sandbox
