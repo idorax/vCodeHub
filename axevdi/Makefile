@@ -8,7 +8,9 @@ TARGETS	= av_encode \
 	  av_verify \
 	  av_amend \
 	  av_post_img \
-	  av_poll_img
+	  av_poll_img \
+	  av_server \
+	  av_client
 
 all: $(TARGETS)
 
@@ -37,6 +39,14 @@ av_post_img: av_post_img.ksh
 	chmod +x $@
 
 av_poll_img: av_poll_img.ksh
+	cp $< $@
+	chmod +x $@
+
+av_server: av_server.ksh
+	cp $< $@
+	chmod +x $@
+
+av_client: av_client.ksh
 	cp $< $@
 	chmod +x $@
 

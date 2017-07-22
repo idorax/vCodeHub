@@ -12,14 +12,22 @@ def main(argc, argv):
 
     base64textfile = argv[1]
     l_lineno = []
+    d_line = {}
     with open(base64textfile, 'r') as f:
         for line in f.readlines():
             s0 = line.rstrip('\n')
+            if len(s0.strip()) == 0:
+                continue
+
             s1 = s0.split('\t')[0].strip().rstrip()
             n1 = int(s1)
             if n1 not in l_lineno:
                 l_lineno.append(n1)
-                print s0
+                d_line[n1] = s0
+
+    l_lineno.sort()
+    for i in l_lineno:
+        print d_line[i]
 
     return 0
 
