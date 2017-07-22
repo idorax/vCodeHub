@@ -22,6 +22,9 @@
         $ sudo apt-get install python-pip
         $ sudo pip install pymouse
 
+1.6 support to resume from break-point
+	$ sudo apt-get install sqlite
+
 2 Howto
 ================================================================================
 
