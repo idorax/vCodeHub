@@ -17,6 +17,10 @@
 1.4 save screenshot
         $ sudo apt-get install shutter
 
+1.5 activate the desktop
+        $ sudo apt-get install python-xlib
+        $ sudo apt-get install python-pip
+        $ sudo pip install pymouse
 
 2 Howto
 ================================================================================
