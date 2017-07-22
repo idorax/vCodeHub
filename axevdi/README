@@ -54,6 +54,16 @@
         $ diff /bin/ls /tmp/ls
         ==> should be the same too
 
+If you want to post a simple file inside the jail, and catch it outside,
+please give it a try:
+
+2.5a Outside the jail, e.g.
+        $ ./av_client /tmp/bar.txt
+
+2.5b Inside  the jail, e.g.
+        $ ./av_server /tmp/foo.txt
+
+Then /tmp/foo.txt in the jail is caught and saved as /tmp/bar.txt
 
 3. Other choice
 ================================================================================
@@ -72,5 +82,14 @@
         >>> img = Image.open("/tmp/foo.png")
         >>> txt = pytesseract.image_to_string(img)
         >>> print txt
+
+4. TODO Next
+================================================================================
+        o support to resume from break-point, may use SQLite
+        o enhance av_encode.py to encode more than one line, and always
+          make sure the encoded lines can be decoded. For instance,
+          1. If N lines are encoded, then try to decode
+          2. If fail to decode, let N = N - 1, go to 1.
+             else encode the next N lines
 
 # EOF
