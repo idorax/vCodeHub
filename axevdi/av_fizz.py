@@ -18,12 +18,9 @@ import os
 import time
 
 F_EXIT = "/tmp/dadyisback"
+NSECS_DROP_ANCHOR = 10
 
-def move_mouse(pointTL, pointRB, interval):
-    x1 = int(pointTL[0])
-    y1 = int(pointTL[1])
-    x2 = int(pointRB[0])
-    y2 = int(pointRB[1])
+def move_mouse(interval):
     nsecs = int(interval)
 
     # clear the screen
@@ -33,23 +30,38 @@ def move_mouse(pointTL, pointRB, interval):
     if os.path.exists(F_EXIT):
         os.remove(F_EXIT)
 
-    # now move the mouse to keep alive
-    x, y = x1, y1
+    # now repeat moving the mouse to keep alive
     from pymouse import PyMouse
-    m = PyMouse()
+    mouse = PyMouse()
+
+    n = NSECS_DROP_ANCHOR
+    print "please move the mouse to drop your anchor in %d secs ..." % n
+    while n > 0:
+        x, y = mouse.position()
+        print "mouse is at point(%d, %d), %d secs left ..." % (x, y, n)
+        time.sleep(1)
+        n -= 1
+
+    x0, y0 = mouse.position()
+    print "mouse is locked to point(%d, %d) ..." % (x0, y0)
+
+    i = 0
     while True:
+        i += 1
+        if i % 2 == 0:
+            x = x0 + 10
+            y = y0 + 10
+        else:
+            x = x0 - 10
+            y = y0 - 10
+
+        if i >= 1024:
+            i = 0
+
         print "move mouse to point(%d, %d), touch %s to abort me ..." % \
               (x, y, F_EXIT)
-        m.position()
-        m.move(x, y)
-        m.click(x, y)
-        x += 10
-        y += 10
-
-        if x >= x2:
-            x = x2
-        if y >= y2:
-            y = y2
+        mouse.move(x, y)
+        mouse.click(x, y)
 
         if os.path.exists(F_EXIT):
             print "Aha, dady is back, good bye ..."
@@ -59,11 +71,12 @@ def move_mouse(pointTL, pointRB, interval):
         time.sleep(nsecs)
 
 def main(argc, argv):
-    if argc != 4:
-        sys.stderr.write("Usage: %s <X1,Y1> <X2,Y2> <interval>\n" % argv[0])
+    if argc != 2:
+        sys.stderr.write("Usage: %s <interval>\n" % argv[0])
+        sys.stderr.write("e.g.   %s 10\n" % argv[0])
         return 1
 
-    move_mouse(argv[1].split(','), argv[2].split(','), argv[3])
+    move_mouse(argv[1])
     return 0
 
 if __name__ == '__main__':
