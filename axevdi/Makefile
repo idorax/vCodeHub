@@ -11,7 +11,6 @@ TARGETS	= av_encode \
 	  av_poll_img \
 	  av_server \
 	  av_client \
-	  av_fizz \
 	  av_click
 
 all: $(TARGETS)
@@ -33,10 +32,6 @@ av_verify: av_verify.py
 	chmod +x $@
 
 av_amend: av_amend.py
-	cp $< $@
-	chmod +x $@
-
-av_fizz: av_fizz.py
 	cp $< $@
 	chmod +x $@
 

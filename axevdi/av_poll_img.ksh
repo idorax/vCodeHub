@@ -25,12 +25,12 @@ else
 
 	f_XY=$TMPDIR/.av_clickXY
 	print "1# move mouse to determine where you start to cap ..."
-	$CDIR/av_click 0 0 $f_XY
+	$CDIR/av_click -i 1 -c 0 -o $f_XY
 	X0=$(cat $f_XY | tr ',' ' ' | awk '{print $1}')
 	Y0=$(cat $f_XY | tr ',' ' ' | awk '{print $2}')
 
 	print "2# move mouse to determine where you end to cap ..."
-	$CDIR/av_click 0 0 $f_XY
+	$CDIR/av_click -i 1 -c 0 -o $f_XY
 	X1=$(cat $f_XY | tr ',' ' ' | awk '{print $1}')
 	Y1=$(cat $f_XY | tr ',' ' ' | awk '{print $2}')
 

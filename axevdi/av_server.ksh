@@ -19,9 +19,9 @@ echo "#2 encode ..."
 PNGDIR=$TMPDIR/${NAME}PNGDIR
 rm -rf $PNGDIR && mkdir -p $PNGDIR
 $CDIR/av_encode $PNGDIR/foo:9 $src_file_b64
+rm -f $src_file_b64
 
 trap "rm -rf $PNGDIR && pkill eog" EXIT
 
-clear
 echo "#3 post ..."
 $CDIR/av_post_img $PNGDIR $interval
