@@ -10,12 +10,9 @@ import time
 F_EXIT = "/tmp/dadyisback"
 NSECS_DROP_ANCHOR = 10
 
-def move_mouse_and_click(interval, ntimes):
+def move_mouse_and_click(interval, ntimes, fileXY):
     nsecs = int(interval) # every nsecs to move mouse then click
     count = int(ntimes)   # total times to click
-
-    # clear the screen
-    os.system("clear")
 
     # remove F_EXIT
     if os.path.exists(F_EXIT):
@@ -35,6 +32,7 @@ def move_mouse_and_click(interval, ntimes):
 
     x, y = mouse.position()
     print "mouse is locked to point(%d, %d) ..." % (x, y)
+    os.system("echo %d,%d > %s" % (x, y, fileXY))
 
     i = 0
     while True:
@@ -59,12 +57,12 @@ def move_mouse_and_click(interval, ntimes):
         os.system("clear")
 
 def main(argc, argv):
-    if argc != 3:
-        sys.stderr.write("Usage: %s <interval> <ntimes>\n" % argv[0])
-        sys.stderr.write("e.g.   %s 10 100\n" % argv[0])
+    if argc != 4:
+        sys.stderr.write("Usage: %s <interval> <ntimes> <fileXY>\n" % argv[0])
+        sys.stderr.write("e.g.   %s 10 100 /tmp/clickXY\n" % argv[0])
         return 1
 
-    move_mouse_and_click(argv[1], argv[2])
+    move_mouse_and_click(argv[1], argv[2], argv[3])
     return 0
 
 if __name__ == '__main__':

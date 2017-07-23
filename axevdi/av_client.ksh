@@ -26,6 +26,7 @@ trap "cleanup" EXIT
 #
 clear
 [[ ! -d $PNGDIR ]] && mkdir -p $PNGDIR
+export CAPMODE="S" # don't have to capture the full screen
 $CDIR/av_poll_img $PNGDIR $outfile $interval
 
 #
