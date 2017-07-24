@@ -19,8 +19,15 @@ def main(argc, argv):
             if len(s0.strip()) == 0:
                 continue
 
+            if s0.find('\t') == -1:
+                continue
+
             s1 = s0.split('\t')[0].strip().rstrip()
-            n1 = int(s1)
+            try:
+                n1 = int(s1)
+            except:
+                continue
+
             if n1 not in l_lineno:
                 l_lineno.append(n1)
                 d_line[n1] = s0
