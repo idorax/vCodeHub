@@ -18,4 +18,5 @@ pkill eog
 count=$(ls -1 $dpostimg/*.png | wc -l)
 (( count *= 2 ))
 eog $dpostimg/*.png > /dev/null 2>&1 &
-$CDIR/av_click -i $interval -c $count -d 60 -C
+pid=$!
+$CDIR/av_click -i $interval -c $count -d 60 -B $pid -C

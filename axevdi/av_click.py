@@ -18,18 +18,29 @@ import os
 import getopt
 import time
 
-F_EXIT = "/tmp/dadyisback"
+BUDDY_PID = -1              # quit if the buddy pid is gone
+F_EXIT = "/tmp/dadyisback"  # quit if the file is present
 NSECS_DROP_ANCHOR = 10
 
+def check_pid(pid):
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError, err:
+        import errno
+        return err.errno == errno.EPERM
+
 def op_mouse(interval, count, outfile, delay, clearflag=False):
+    from pymouse import PyMouse
+    mouse = PyMouse()
+
     # remove F_EXIT
     if os.path.exists(F_EXIT):
         os.remove(F_EXIT)
 
-    # now repeat moving the mouse to keep alive
-    from pymouse import PyMouse
-    mouse = PyMouse()
-
+    #
+    # let user drop his anchor
+    #
     n = NSECS_DROP_ANCHOR
     print "please move the mouse to drop your anchor in %d secs ..." % n
     while n > 0:
@@ -45,12 +56,18 @@ def op_mouse(interval, count, outfile, delay, clearflag=False):
         print "save mouse point(%d, %d) to file %s ..." % (x, y, outfile)
         os.system("echo %d,%d > %s" % (x, y, outfile))
 
+    #
+    # delay for a while until guest is ready
+    #
     if count == 0:
         return
 
     print "delay %d secs until my guest is ready ..." % delay
     time.sleep(delay)
 
+    #
+    # now repeat moving the mouse and click
+    #
     if count == -1:
         count = 1 << 64
 
@@ -69,7 +86,7 @@ def op_mouse(interval, count, outfile, delay, clearflag=False):
         mouse.move(x0, y0)        # move back
 
         if os.path.exists(F_EXIT):
-            print "Aha, dady is back, good bye ..."
+            print "Aha, DADY IS BACK, good bye ..."
             os.remove(F_EXIT)
             break
 
@@ -77,11 +94,19 @@ def op_mouse(interval, count, outfile, delay, clearflag=False):
             print "Well, finished clicking %d times, good bye ..." % count
             break
 
+        # abort if the buddy pid is not running
+        pid = BUDDY_PID
+        if pid != -1:
+            if not check_pid(pid):
+                print "I have to go as my buddy %d is gone, good bye ..." % pid
+                break
+
         time.sleep(interval)
 
 def usage(prog):
     sys.stderr.write("Usage: %s " % prog + \
-                     "[-i interval] [-c count] [-o outfile] [-C]\n")
+                     "[-i interval] [-c count] [-o outfile] " + \
+                     "[-d delay] [-B BuddyPID] [-F file2exit] [-C]\n")
     sys.stderr.write("e.g.   %s -i 10 -c 100 -o /tmp/fooXY -C\n" % prog)
 
 def main(argc, argv):
@@ -91,8 +116,9 @@ def main(argc, argv):
     delay = 1       # dealy N secs before moving mouse then click
     clearflag = False
     options, rargv = getopt.getopt(argv[1:],
-            ":i:c:o:d:Ch",
-            ["interval=", "count=", "outfile=", "delay", "clear", "help"])
+            ":i:c:o:d:B:F:Ch",
+            ["interval=", "count=", "outfile=",
+            "delay=", "BuddyPID=", "file2exit", "clear", "help"])
     for opt, arg in options:
         if opt in ("-i", "--interval"):
             interval = int(arg)
@@ -104,6 +130,12 @@ def main(argc, argv):
             delay = int(arg)
         elif opt in ("-C", "--clear"):
             clearflag = True
+        elif opt in ("-B", "--BuddyPID"):
+            global BUDDY_PID
+            BUDDY_PID = int(arg)
+        elif opt in ("-F", "--file2exit"):
+            global F_EXIT
+            F_EXIT = arg
         else:
             usage(argv[0])
             return 1
