@@ -9,14 +9,14 @@
 extern "C" {
 #endif
 
-typedef unsigned char           byte;   /* 1 byte */
-typedef unsigned short          word;   /* 2 bytes */
-typedef unsigned int            dword;  /* 4 bytes */
-typedef unsigned long long      qword;  /* 8 bytes */
+typedef unsigned char		byte;	/* 1 byte */
+typedef unsigned short		word;	/* 2 bytes */
+typedef unsigned int		dword;	/* 4 bytes */
+typedef unsigned long long	qword;	/* 8 bytes */
 
 typedef struct big_number_s {
-        dword   *data;
-        dword   size;
+	dword *data;
+	dword size;
 } big_number_t;
 
 big_number_t *big_number_mul(big_number_t *a, big_number_t *b);

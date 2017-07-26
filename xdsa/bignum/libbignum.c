@@ -30,73 +30,73 @@
 static void
 add64(dword a[], dword n, qword n64)
 {
-        dword carry = 0;
+	dword carry = 0;
 
-        carry = n64 & 0xFFFFFFFF; /* low 32 bits of n64 */
-        for (dword i = 0; i < n; i++) {
-                if (carry == 0x0)
-                        break;
+	carry = n64 & 0xFFFFFFFF; /* low 32 bits of n64 */
+	for (dword i = 0; i < n; i++) {
+		if (carry == 0x0)
+			break;
 
-                qword t = (qword)a[i] + (qword)carry;
-                a[i] = t & 0xFFFFFFFF;
-                carry = (dword)(t >> 32); /* next carry */
-        }
+		qword t = (qword)a[i] + (qword)carry;
+		a[i] = t & 0xFFFFFFFF;
+		carry = (dword)(t >> 32); /* next carry */
+	}
 
-        carry = (dword)(n64 >> 32); /* high 32 bits of n64 */
-        for (dword i = 1; i < n; i++) {
-                if (carry == 0x0)
-                        break;
+	carry = (dword)(n64 >> 32); /* high 32 bits of n64 */
+	for (dword i = 1; i < n; i++) {
+		if (carry == 0x0)
+			break;
 
-                qword t = (qword)a[i] + (qword)carry;
-                a[i] = t & 0xFFFFFFFF;
-                carry = (dword)(t >> 32); /* next carry */
-        }
+		qword t = (qword)a[i] + (qword)carry;
+		a[i] = t & 0xFFFFFFFF;
+		carry = (dword)(t >> 32); /* next carry */
+	}
 }
 
 big_number_t *
 big_number_mul(big_number_t *a, big_number_t *b)
 {
-        big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
-        if (c == NULL) /* malloc error */
-                return NULL;
+	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
+	if (c == NULL) /* malloc error */
+		return NULL;
 
-        c->size = a->size + b->size;
-        c->data = (dword *)malloc(sizeof(dword) * c->size);
-        if (c->data == NULL) /* malloc error */
-                return NULL;
+	c->size = a->size + b->size;
+	c->data = (dword *)malloc(sizeof(dword) * c->size);
+	if (c->data == NULL) /* malloc error */
+		return NULL;
 
-        memset(c->data, 0, sizeof(dword) * c->size);
+	memset(c->data, 0, sizeof(dword) * c->size);
 
-        dword *adp = a->data;
-        dword *bdp = b->data;
-        dword *cdp = c->data;
-        for (dword i = 0; i < a->size; i++) {
-                if (adp[i] == 0x0)
-                        continue;
+	dword *adp = a->data;
+	dword *bdp = b->data;
+	dword *cdp = c->data;
+	for (dword i = 0; i < a->size; i++) {
+		if (adp[i] == 0x0)
+			continue;
 
-                for (dword j = 0; j < b->size; j++) {
-                        if (bdp[j] == 0x0)
-                                continue;
+		for (dword j = 0; j < b->size; j++) {
+			if (bdp[j] == 0x0)
+				continue;
 
-                        qword n64 = (qword)adp[i] * (qword)bdp[j];
-                        dword *dst = cdp + i + j;
-                        add64(dst, c->size - (i + j), n64);
-                }
-        }
+			qword n64 = (qword)adp[i] * (qword)bdp[j];
+			dword *dst = cdp + i + j;
+			add64(dst, c->size - (i + j), n64);
+		}
+	}
 
-        return c;
+	return c;
 }
 
 void
 free_big_number(big_number_t *p)
 {
-        if (p == NULL)
-                return;
+	if (p == NULL)
+		return;
 
-        if (p->data != NULL)
-                free(p->data);
+	if (p->data != NULL)
+		free(p->data);
 
-        free(p);
+	free(p);
 }
 
 static char *
@@ -127,10 +127,10 @@ str2bn_align(char *s)
  *
  * More Examples:
  *	1. 0x1234567           : 0x01234567, 0x00000000
- *      2. 0x12345678          : 0x12345678, 0x00000000
- *      3. 0x123456789         : 0x23456789, 0x00000001, 0x00000000
- *      4. 0x12345678abcdefab  : 0xabcdefab, 0x12345678, 0x00000000
- *      5. 0x12345678abcdefabc : 0xbcdefabc, 0x2345678a, 0x00000001, 0x00000000
+ *	2. 0x12345678          : 0x12345678, 0x00000000
+ *	3. 0x123456789         : 0x23456789, 0x00000001, 0x00000000
+ *	4. 0x12345678abcdefab  : 0xabcdefab, 0x12345678, 0x00000000
+ *	5. 0x12345678abcdefabc : 0xbcdefabc, 0x2345678a, 0x00000001, 0x00000000
  */
 big_number_t *
 str2bn(const char *s)
@@ -145,16 +145,16 @@ str2bn(const char *s)
 		n -= 2;
 	}
 
-        big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
-        if (c == NULL) /* malloc error */
+	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
+	if (c == NULL) /* malloc error */
 		return NULL;
 
 	c->size = (n % 8 == 0) ? (n / 8 + 1) : (n / 8 + 2);
-        c->data = (dword *)malloc(sizeof(dword) * c->size);
-        if (c->data == NULL) /* malloc error */
-                return NULL;
+	c->data = (dword *)malloc(sizeof(dword) * c->size);
+	if (c->data == NULL) /* malloc error */
+		return NULL;
 
-        memset(c->data, 0, sizeof(dword) * c->size);
+	memset(c->data, 0, sizeof(dword) * c->size);
 
 	char *q = str2bn_align(p);
 	if (q == NULL)
@@ -191,7 +191,7 @@ bn2str(big_number_t *bn)
 	size_t m = bn->size;
 	for (int i = bn->size - 1; i >= 0; i--) {
 		if ((bn->data[i]) != 0x0)
-		       break;
+			break;
 		m--;
 	}
 

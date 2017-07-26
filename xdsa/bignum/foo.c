@@ -10,13 +10,13 @@
 static void
 dump(char *tag, big_number_t *p)
 {
-        if (p == NULL)
-                return;
+	if (p == NULL)
+		return;
 
-        printf("%s : data=%p : size=%d:\t", tag, p, p->size);
-        for (dword i = 0; i < p->size; i++)
-                printf("0x%08x ", (p->data)[i]);
-        printf("\n");
+	printf("%s : data=%p : size=%d:\t", tag, p, p->size);
+	for (dword i = 0; i < p->size; i++)
+		printf("0x%08x ", (p->data)[i]);
+	printf("\n");
 }
 
 int
@@ -30,10 +30,10 @@ main(int argc, char *argv[])
 	big_number_t *a = str2bn(argv[1]);
 	big_number_t *b = str2bn(argv[2]);
 
-        dump("BigNumber A", a);
-        dump("BigNumber B", b);
-        big_number_t *c = big_number_mul(a, b);
-        dump("  C = A * B", c);
+	dump("BigNumber A", a);
+	dump("BigNumber B", b);
+	big_number_t *c = big_number_mul(a, b);
+	dump("  C = A * B", c);
 
 	char *pa = bn2str(a);
 	char *pb = bn2str(b);
@@ -43,9 +43,9 @@ main(int argc, char *argv[])
 	free(pb);
 	free(pc);
 
-        free_big_number(c);
-        free_big_number(b);
-        free_big_number(a);
+	free_big_number(c);
+	free_big_number(b);
+	free_big_number(a);
 
-        return 0;
+	return 0;
 }
