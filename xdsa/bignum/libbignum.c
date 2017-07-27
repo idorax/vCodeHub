@@ -54,6 +54,47 @@ add64(dword a[], dword n, qword n64)
 }
 
 big_number_t *
+big_number_add(big_number_t *a, big_number_t *b)
+{
+	dword *pmax = NULL;
+	dword *pmin = NULL;
+	dword nmax = 0;
+	dword nmin = 0;
+	if (a->size > b->size) {
+		pmax = a->data;
+		pmin = b->data;
+		nmax = a->size;
+		nmin = b->size;
+	} else {
+		pmax = b->data;
+		pmin = a->data;
+		nmax = b->size;
+		nmin = a->size;
+	}
+
+	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
+	if (c == NULL) /* malloc error */
+		return NULL;
+
+	c->size = nmax + 1;
+	c->data = (dword *)malloc(sizeof(dword) * c->size);
+	if (c->data == NULL) /* malloc error */
+		return NULL;
+
+	memset(c->data, 0, sizeof(dword) * c->size);
+
+	/* copy the max one to dst */
+	for (dword i = 0; i < nmax; i++)
+		c->data[i] = pmax[i];
+
+	/* add the min one to dst */
+	for (dword i = 0; i < nmin; i++)
+		add64(c->data + i, c->size - i, (qword)pmin[i]);
+
+	return c;
+}
+
+big_number_t *
 big_number_mul(big_number_t *a, big_number_t *b)
 {
 	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
@@ -103,7 +144,7 @@ static char *
 str2bn_align(char *s)
 {
 	size_t n = strlen(s);
-	int m = (n % 8 != 0 ) ? (8 - (n % 8)) : 0;
+	int m = (n % 8 != 0) ? (8 - (n % 8)) : 0;
 	char *p = (char *)malloc(sizeof(char) * (n + m + 1));
 	if (p == NULL)
 		return NULL;

@@ -35,14 +35,21 @@ main(int argc, char *argv[])
 	big_number_t *c = big_number_mul(a, b);
 	dump("  C = A * B", c);
 
+	big_number_t *d = big_number_add(a, b);
+	dump("  D = A + B", d);
+
 	char *pa = bn2str(a);
 	char *pb = bn2str(b);
 	char *pc = bn2str(c);
+	char *pd = bn2str(d);
 	printf("\n%s == %s * %s\n", pc, pa, pb);
+	printf("\n%s == %s + %s\n", pd, pa, pb);
 	free(pa);
 	free(pb);
 	free(pc);
+	free(pd);
 
+	free_big_number(d);
 	free_big_number(c);
 	free_big_number(b);
 	free_big_number(a);
