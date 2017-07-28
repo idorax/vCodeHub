@@ -20,6 +20,8 @@ retry_times=${RETRY_TIMES:-"30"}
 if [[ $capmode == "F" ]]; then
 	shutteropt="-f"
 	print "Note the full screen will be captured ..."
+	X3=""
+	Y3=""
 else
 	shutteropt="-s"
 
@@ -38,8 +40,14 @@ else
 	H=$(( Y1 - Y0 ))
 	shutteropt+=" $X0,$Y0,$W,$H"
 	print "Note block ($X0,$Y0,$W,$H) will be captured ..."
+
+	print "3# move mouse to determine where you want to click ..."
+	$CDIR/av_click -i 1 -c 0 -o $f_XY
+	X3=$(cat $f_XY | tr ',' ' ' | awk '{print $1}')
+	Y3=$(cat $f_XY | tr ',' ' ' | awk '{print $2}')
 fi
 
+t_start=$(date)
 i=0
 while :; do
 	(( i += 1 ))
@@ -50,14 +58,18 @@ while :; do
 	rm -f $f_img
 	if [[ -n "$s" ]]; then
 		count=0
-		echo "$s" >> $xoutfile
-		echo $s
+		print "$s" >> $xoutfile
+		print $s
+		$CDIR/av_click_once $X3 $Y3
 	else
-		echo "Oops, catch nothing ..." >&2
+		print "Oops, catch nothing ..." >&2
 		(( count += 1 ))
 		if (( count > $retry_times )); then
-			echo "Well, catch nothing after try $count times, " \
-			     "good bye ..."
+			t_end=$(date)
+			print "Start: $t_start ..."
+			print "End :  $t_end ..."
+			print "Well, catch nothing after try $count times, " \
+			      "good bye ..."
 			exit 1
 		fi
 	fi

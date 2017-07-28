@@ -11,6 +11,7 @@ TARGETS	= av_encode \
 	  av_server \
 	  av_client \
 	  av_click \
+	  av_click_once \
 	  av_writer \
 	  av_reader
 
@@ -37,6 +38,10 @@ av_amend: av_amend.py
 	chmod +x $@
 
 av_click: av_click.py
+	cp $< $@
+	chmod +x $@
+
+av_click_once: av_click_once.py
 	cp $< $@
 	chmod +x $@
 
