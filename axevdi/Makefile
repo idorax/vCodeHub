@@ -7,7 +7,6 @@ TARGETS	= av_encode \
 	  av_uniq \
 	  av_verify \
 	  av_amend \
-	  av_post_img \
 	  av_poll_img \
 	  av_server \
 	  av_client \
@@ -36,10 +35,6 @@ av_amend: av_amend.py
 	chmod +x $@
 
 av_click: av_click.py
-	cp $< $@
-	chmod +x $@
-
-av_post_img: av_post_img.ksh
 	cp $< $@
 	chmod +x $@
 
