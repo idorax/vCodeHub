@@ -10,7 +10,9 @@ TARGETS	= av_encode \
 	  av_poll_img \
 	  av_server \
 	  av_client \
-	  av_click
+	  av_click \
+	  av_writer \
+	  av_reader
 
 all: $(TARGETS)
 
@@ -35,6 +37,14 @@ av_amend: av_amend.py
 	chmod +x $@
 
 av_click: av_click.py
+	cp $< $@
+	chmod +x $@
+
+av_writer: av_writer.py
+	cp $< $@
+	chmod +x $@
+
+av_reader: av_reader.py
 	cp $< $@
 	chmod +x $@
 
