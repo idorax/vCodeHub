@@ -4,6 +4,7 @@
 
 TARGETS	= av_encode \
 	  av_decode \
+	  av_encode_dynamic \
 	  av_uniq \
 	  av_verify \
 	  av_amend \
@@ -22,6 +23,10 @@ av_encode: av_encode.py
 	chmod +x $@
 
 av_decode: av_decode.py
+	cp $< $@
+	chmod +x $@
+
+av_encode_dynamic: av_encode_dynamic.py
 	cp $< $@
 	chmod +x $@
 

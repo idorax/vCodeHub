@@ -20,7 +20,7 @@ def op_mouse(x, y):
 
 def main(argc, argv):
     if argc != 3:
-        sys.stderr.write("Usage: %s <X> <Y>\n", argv[0])
+        sys.stderr.write("Usage: %s <X> <Y>\n" % argv[0])
         return 1
 
     x = int(argv[1])
