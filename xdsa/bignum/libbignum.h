@@ -17,9 +17,11 @@ typedef unsigned long long	qword;	/* 8 bytes */
 typedef struct big_number_s {
 	dword *data;
 	dword size;
+	byte  sign; /* 0 : positive, 1 : negative */
 } big_number_t;
 
 big_number_t *big_number_add(big_number_t *a, big_number_t *b);
+big_number_t *big_number_sub(big_number_t *a, big_number_t *b);
 big_number_t *big_number_mul(big_number_t *a, big_number_t *b);
 void free_big_number(big_number_t *p);
 

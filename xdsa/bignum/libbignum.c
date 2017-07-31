@@ -95,6 +95,14 @@ big_number_add(big_number_t *a, big_number_t *b)
 }
 
 big_number_t *
+big_number_sub(big_number_t *a, big_number_t *b)
+{
+	if (a->size < b->size)
+		return NULL;
+	return NULL;
+}
+
+big_number_t *
 big_number_mul(big_number_t *a, big_number_t *b)
 {
 	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
