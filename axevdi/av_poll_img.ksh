@@ -46,6 +46,7 @@ X2=$(cat $f_XY | tr ',' ' ' | awk '{print $1}')
 Y2=$(cat $f_XY | tr ',' ' ' | awk '{print $2}')
 
 t_start=$(date)
+s_prev=""
 i=0
 while :; do
 	(( i += 1 ))
@@ -56,9 +57,13 @@ while :; do
 	rm -f $f_img
 	if [[ -n "$s" ]]; then
 		count=0
+		[[ $s == $s_prev ]] && continue
 		print "$s" >> $xoutfile
+		s_prev="$s"
 		print $s
-		$CDIR/av_click_once $X2 $Y2
+		s=""
+
+		$CDIR/av_click_once $X2 $Y2 > /dev/null 2>&1
 	else
 		print "Oops, catch nothing ..." >&2
 		(( count += 1 ))
