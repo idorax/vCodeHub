@@ -39,8 +39,6 @@ if [[ $post_mode == "static" ]]; then
 		ps -p $pid > /dev/null 2>&1 || exit 0
 		sleep $interval
 	done
-
-	ps -p $pid > /dev/null 2>&1 && kill -9 $pid
 else
 	print "In dynamic mode ..."
 

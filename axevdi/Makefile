@@ -14,7 +14,8 @@ TARGETS	= av_encode \
 	  av_click \
 	  av_click_once \
 	  av_writer \
-	  av_reader
+	  av_reader \
+	  av_extract
 
 all: $(TARGETS)
 
@@ -67,6 +68,10 @@ av_server: av_server.ksh
 	chmod +x $@
 
 av_client: av_client.ksh
+	cp $< $@
+	chmod +x $@
+
+av_extract: av_extract.py
 	cp $< $@
 	chmod +x $@
 
