@@ -30,6 +30,11 @@ main(int argc, char *argv[])
 	big_number_t *a = str2bn(argv[1]);
 	big_number_t *b = str2bn(argv[2]);
 
+	if (gt(a, b))
+		printf("A > B\n\n");
+	else
+		printf("A <= B\n\n");
+
 	dump("BigNumber A", a);
 	dump("BigNumber B", b);
 	big_number_t *c = big_number_mul(a, b);

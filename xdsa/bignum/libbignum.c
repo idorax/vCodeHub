@@ -8,6 +8,44 @@
 #include "libbignum.h"
 
 /*
+ * Compare big number a with b, return true if a is greater than b.
+ */
+bool
+gt(big_number_t *a, big_number_t *b)
+{
+	dword sa = a->size;
+	dword sb = b->size;
+
+	for (sqword i = (sqword)a->size - 1; i >= 0; i--) {
+		if (*(a->data + i) != 0x0)
+			break;
+		sa--;
+	}
+
+	for (sqword i = (sqword)b->size - 1; i >= 0; i--) {
+		if (*(b->data + i) != 0x0)
+			break;
+		sb--;
+	}
+
+	if (sa > sb)
+		return true;
+	else if (sa < sb)
+		return false;
+	else { /* sa == sb */
+		for (sqword i = (sqword)sa - 1; i >= 0; i--) {
+			if ((a->data)[i] > (b->data)[i])
+				return true;
+			else if ((a->data)[i] < (b->data)[i])
+				return false;
+			else /* ((a->data)[i] == (b->data)[i]) */
+				continue;
+		}
+		return false; /* (a->data)[@] == (b->data)[@] */
+	}
+}
+
+/*
  * Add 64-bit number (8 bytes) to a[] whose element is 32-bit int (4 bytes)
  *
  * e.g.
@@ -97,8 +135,7 @@ big_number_add(big_number_t *a, big_number_t *b)
 big_number_t *
 big_number_sub(big_number_t *a, big_number_t *b)
 {
-	if (a->size < b->size)
-		return NULL;
+	/* TBD */
 	return NULL;
 }
 
@@ -242,6 +279,11 @@ bn2str(big_number_t *bn)
 		if ((bn->data[i]) != 0x0)
 			break;
 		m--;
+	}
+
+	if (m == 0) {
+		*(p + 2) = '0';
+		return p;
 	}
 
 	for (int i = m - 1; i >= 0; i--) {
