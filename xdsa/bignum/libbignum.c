@@ -8,6 +8,21 @@
 #include "libbignum.h"
 
 /*
+ * Dump big number with specified tag
+ */
+void
+dump_big_number(char *tag, big_number_t *p)
+{
+	if (p == NULL)
+		return;
+
+	printf("%s : data=%p : size=%d:\t", tag, p, p->size);
+	for (dword i = 0; i < p->size; i++)
+		printf("0x%08x ", (p->data)[i]);
+	printf("\n");
+}
+
+/*
  * Compare big number a with b, return true if a is greater than b.
  */
 bool
@@ -132,11 +147,62 @@ big_number_add(big_number_t *a, big_number_t *b)
 	return c;
 }
 
+/*
+ * Always return |a - b|, the sign is not recorded yet
+ */
 big_number_t *
 big_number_sub(big_number_t *a, big_number_t *b)
 {
-	/* TBD */
-	return NULL;
+	big_number_t *c = NULL;
+
+	big_number_t *pmax = NULL;
+	big_number_t *pmin = NULL;
+
+	if (gt(a, b)) {
+		pmax = a;
+		pmin = b;
+	} else {
+		pmax = b;
+		pmin = a;
+	}
+
+	/* allocate a temp big number */
+	big_number_t *t = (big_number_t *)malloc(sizeof(big_number_t));
+	if (t == NULL) /* malloc error */
+		return NULL;
+	t->size = pmax->size;
+	t->data = (dword *)malloc(sizeof(dword) * t->size);
+	if (t->data == NULL) /* malloc error */
+		goto done;
+
+	memset(t->data, 0, sizeof(dword) * t->size);
+
+	/* copy the min one to the temp big number */
+	for (dword i = 0; i < pmin->size; i++)
+		(t->data)[i] = (pmin->data)[i];
+	/* pick up (t->data)[-1] then set sign */
+	(t->data)[pmax->size - 1] = 0x1;
+
+	/* get complement of the temp big number */
+	for (dword i = 0; i < pmax->size; i++)
+		(t->data)[i] = ~((t->data)[i]);
+	add64(t->data, t->size, (qword)0x1);
+
+	/* now execute big number addition */
+	c = big_number_add(pmax, t);
+	if (c == NULL)
+		goto done;
+
+	/*
+	 * erase the sign at c->data[c->size - 2] == (dword)~0 == 0xffffffff
+	 * please be noted that "c->size - 2 == pmax->size - 1" in fact
+	 */
+	*(c->data + c->size - 2) = 0x0;
+
+done:
+	free_big_number(t);
+
+	return c;
 }
 
 big_number_t *

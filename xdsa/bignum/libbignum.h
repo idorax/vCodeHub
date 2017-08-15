@@ -29,6 +29,7 @@ big_number_t *big_number_add(big_number_t *a, big_number_t *b);
 big_number_t *big_number_sub(big_number_t *a, big_number_t *b);
 big_number_t *big_number_mul(big_number_t *a, big_number_t *b);
 void free_big_number(big_number_t *p);
+void dump_big_number(char *tag, big_number_t *p);
 
 big_number_t *str2bn(const char *s);
 char *bn2str(big_number_t *p);

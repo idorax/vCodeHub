@@ -7,18 +7,6 @@
 #include <string.h>
 #include "libbignum.h"
 
-static void
-dump(char *tag, big_number_t *p)
-{
-	if (p == NULL)
-		return;
-
-	printf("%s : data=%p : size=%d:\t", tag, p, p->size);
-	for (dword i = 0; i < p->size; i++)
-		printf("0x%08x ", (p->data)[i]);
-	printf("\n");
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -35,25 +23,33 @@ main(int argc, char *argv[])
 	else
 		printf("A <= B\n\n");
 
-	dump("BigNumber A", a);
-	dump("BigNumber B", b);
+	dump_big_number("BigNumber A", a);
+	dump_big_number("BigNumber B", b);
+
 	big_number_t *c = big_number_mul(a, b);
-	dump("  C = A * B", c);
+	dump_big_number("  C = A * B", c);
 
 	big_number_t *d = big_number_add(a, b);
-	dump("  D = A + B", d);
+	dump_big_number("  D = A + B", d);
+
+	big_number_t *e = big_number_sub(a, b);
+	dump_big_number("  E = A - B", e);
 
 	char *pa = bn2str(a);
 	char *pb = bn2str(b);
 	char *pc = bn2str(c);
 	char *pd = bn2str(d);
+	char *pe = bn2str(e);
 	printf("\n%s == %s * %s\n", pc, pa, pb);
 	printf("\n%s == %s + %s\n", pd, pa, pb);
+	printf("\n%s == %s - %s\n", pe, pa, pb);
 	free(pa);
 	free(pb);
 	free(pc);
 	free(pd);
+	free(pe);
 
+	free_big_number(e);
 	free_big_number(d);
 	free_big_number(c);
 	free_big_number(b);
