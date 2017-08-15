@@ -18,10 +18,21 @@ main(int argc, char *argv[])
 	big_number_t *a = str2bn(argv[1]);
 	big_number_t *b = str2bn(argv[2]);
 
-	if (gt(a, b))
-		printf("A > B\n\n");
-	else
-		printf("A <= B\n\n");
+	if (gt(a, b)) {
+		printf("1: A > B\n");
+	} else {
+		printf("1: A <= B && ");
+		if (eq(a, b))	printf("A == B\n");
+		else		printf("A != B\n");
+	}
+
+	if (lt(a, b)) {
+		printf("2: A < B\n");
+	} else {
+		printf("2: A >= B && ");
+		if (eq(a, b))	printf("A == B\n");
+		else		printf("A != B\n");
+	}
 
 	dump_big_number("BigNumber A", a);
 	dump_big_number("BigNumber B", b);

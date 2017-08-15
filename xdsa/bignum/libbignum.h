@@ -35,6 +35,11 @@ big_number_t *str2bn(const char *s);
 char *bn2str(big_number_t *p);
 
 bool gt(big_number_t *a, big_number_t *b);
+bool lt(big_number_t *a, big_number_t *b);
+bool eq(big_number_t *a, big_number_t *b);
+#define ge(a, b) !lt((a), (b))
+#define le(a, b) !gt((a), (b))
+#define ne(a, b) !eq((a), (b))
 
 #ifdef	__cplusplus
 }
