@@ -18,42 +18,46 @@ main(int argc, char *argv[])
 	big_number_t *a = str2bn(argv[1]);
 	big_number_t *b = str2bn(argv[2]);
 
-	if (gt(a, b)) {
-		printf("1: A > B\n");
+	if (abs_gt(a, b)) {
+		printf("1: |A| > |B|\n");
 	} else {
-		printf("1: A <= B && ");
-		if (eq(a, b))	printf("A == B\n");
-		else		printf("A != B\n");
+		printf("1: |A| <= |B| && ");
+		if (abs_eq(a, b))
+			printf("|A| == |B|\n");
+		else
+			printf("|A| != |B|\n");
 	}
 
-	if (lt(a, b)) {
-		printf("2: A < B\n");
+	if (abs_lt(a, b)) {
+		printf("2: |A| < |B|\n");
 	} else {
-		printf("2: A >= B && ");
-		if (eq(a, b))	printf("A == B\n");
-		else		printf("A != B\n");
+		printf("2: |A| >= |B| && ");
+		if (abs_ne(a, b))
+			printf("|A| != |B|\n");
+		else
+			printf("|A| == |B|\n");
 	}
 
-	dump_big_number("BigNumber A", a);
-	dump_big_number("BigNumber B", b);
+	dump("BigNumber A", a);
+	dump("BigNumber B", b);
 
-	big_number_t *c = big_number_mul(a, b);
-	dump_big_number("  C = A * B", c);
+	big_number_t *c = bn_add(a, b);
+	dump("  C = A + B", c);
 
-	big_number_t *d = big_number_add(a, b);
-	dump_big_number("  D = A + B", d);
+	big_number_t *d = bn_sub(a, b);
+	dump("  D = A - B", d);
 
-	big_number_t *e = big_number_sub(a, b);
-	dump_big_number("  E = A - B", e);
+	big_number_t *e = bn_mul(a, b);
+	dump("  E = A * B", e);
 
 	char *pa = bn2str(a);
 	char *pb = bn2str(b);
 	char *pc = bn2str(c);
 	char *pd = bn2str(d);
 	char *pe = bn2str(e);
-	printf("\n%s == %s * %s\n", pc, pa, pb);
-	printf("\n%s == %s + %s\n", pd, pa, pb);
-	printf("\n%s == %s - %s\n", pe, pa, pb);
+	printf("\n%s == %s + %s\n", pc, pa, pb);
+	printf("\n%s == %s - %s\n", pd, pa, pb);
+	printf("\n%s == %s * %s\n", pe, pa, pb);
 	free(pa);
 	free(pb);
 	free(pc);

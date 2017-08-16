@@ -16,7 +16,8 @@ dump_big_number(char *tag, big_number_t *p)
 	if (p == NULL)
 		return;
 
-	printf("%s : data=%p : size=%d:\t", tag, p, p->size);
+	printf("%s : sign=%d : data=%p : size=%d :\t",
+	       tag, p->sign, p, p->size);
 	for (dword i = 0; i < p->size; i++)
 		printf("0x%08x ", (p->data)[i]);
 	printf("\n");
@@ -26,7 +27,7 @@ dump_big_number(char *tag, big_number_t *p)
  * Compare big number a with b, return true if a is greater than b.
  */
 bool
-gt(big_number_t *a, big_number_t *b)
+abs_gt(big_number_t *a, big_number_t *b)
 {
 	dword sa = a->size;
 	dword sb = b->size;
@@ -64,7 +65,7 @@ gt(big_number_t *a, big_number_t *b)
  * Compare big number a with b, return true if a is less than b.
  */
 bool
-lt(big_number_t *a, big_number_t *b)
+abs_lt(big_number_t *a, big_number_t *b)
 {
 	dword sa = a->size;
 	dword sb = b->size;
@@ -102,7 +103,7 @@ lt(big_number_t *a, big_number_t *b)
  * Compare big number a with b, return true if a is equal to b.
  */
 bool
-eq(big_number_t *a, big_number_t *b)
+abs_eq(big_number_t *a, big_number_t *b)
 {
 	dword sa = a->size;
 	dword sb = b->size;
@@ -139,7 +140,7 @@ eq(big_number_t *a, big_number_t *b)
  *      a[] = {0x12345678,0x87654321,0x0}; n = 3;
  *      n64 =  0xffffffff12345678
  *
- *      The whole process of add64() looks like:
+ *      The whole process of abs_add64() looks like:
  *
  *             0x12345678 0x87654321 0x00000000
  *          +  0x12345678 0xffffffff
@@ -153,7 +154,7 @@ eq(big_number_t *a, big_number_t *b)
  *      a[] = {0x2468acf0,0x87654320,0x00000001}
  */
 static void
-add64(dword a[], dword n, qword n64)
+abs_add64(dword a[], dword n, qword n64)
 {
 	dword carry = 0;
 
@@ -178,8 +179,8 @@ add64(dword a[], dword n, qword n64)
 	}
 }
 
-big_number_t *
-big_number_add(big_number_t *a, big_number_t *b)
+static big_number_t *
+big_number_abs_add(big_number_t *a, big_number_t *b)
 {
 	dword *pmax = NULL;
 	dword *pmin = NULL;
@@ -214,23 +215,20 @@ big_number_add(big_number_t *a, big_number_t *b)
 
 	/* add the min one to dst */
 	for (dword i = 0; i < nmin; i++)
-		add64(c->data + i, c->size - i, (qword)pmin[i]);
+		abs_add64(c->data + i, c->size - i, (qword)pmin[i]);
 
 	return c;
 }
 
-/*
- * Always return |a - b|, the sign is not recorded yet
- */
-big_number_t *
-big_number_sub(big_number_t *a, big_number_t *b)
+static big_number_t *
+big_number_abs_sub(big_number_t *a, big_number_t *b)
 {
 	big_number_t *c = NULL;
 
 	big_number_t *pmax = NULL;
 	big_number_t *pmin = NULL;
 
-	if (gt(a, b)) {
+	if (abs_gt(a, b)) {
 		pmax = a;
 		pmin = b;
 	} else {
@@ -258,10 +256,10 @@ big_number_sub(big_number_t *a, big_number_t *b)
 	/* get complement of the temp big number */
 	for (dword i = 0; i < pmax->size; i++)
 		(t->data)[i] = ~((t->data)[i]);
-	add64(t->data, t->size, (qword)0x1);
+	abs_add64(t->data, t->size, (qword)0x1);
 
 	/* now execute big number addition */
-	c = big_number_add(pmax, t);
+	c = big_number_abs_add(pmax, t);
 	if (c == NULL)
 		goto done;
 
@@ -277,8 +275,8 @@ done:
 	return c;
 }
 
-big_number_t *
-big_number_mul(big_number_t *a, big_number_t *b)
+static big_number_t *
+big_number_abs_mul(big_number_t *a, big_number_t *b)
 {
 	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
 	if (c == NULL) /* malloc error */
@@ -304,7 +302,7 @@ big_number_mul(big_number_t *a, big_number_t *b)
 
 			qword n64 = (qword)adp[i] * (qword)bdp[j];
 			dword *dst = cdp + i + j;
-			add64(dst, c->size - (i + j), n64);
+			abs_add64(dst, c->size - (i + j), n64);
 		}
 	}
 
@@ -321,6 +319,98 @@ free_big_number(big_number_t *p)
 		free(p->data);
 
 	free(p);
+}
+
+big_number_t *
+bn_add(big_number_t *a, big_number_t *b)
+{
+	sign_t sign = sign_pos;
+	big_number_t *c = NULL;
+
+	if (a->sign == sign_neg && b->sign == sign_neg) {
+		sign = sign_neg;
+		c = big_number_abs_add(a, b);
+		goto done;
+	}
+
+	if (a->sign == sign_pos && b->sign == sign_pos) {
+		sign = sign_pos;
+		c = big_number_abs_add(a, b);
+		goto done;
+	}
+
+	if (a->sign == sign_neg && b->sign == sign_pos) {
+		sign = abs_gt(a, b) ? sign_neg : sign_pos;
+		c = big_number_abs_sub(a, b);
+		goto done;
+	}
+
+	if (a->sign == sign_pos && b->sign == sign_neg) {
+		sign = abs_gt(b, a) ? sign_neg : sign_pos;
+		c = big_number_abs_sub(a, b);
+		goto done;
+	}
+
+done:
+	if (c == NULL)
+		return NULL;
+
+	c->sign = sign;
+	return c;
+}
+
+big_number_t *
+bn_sub(big_number_t *a, big_number_t *b)
+{
+	sign_t sign = sign_pos;
+	big_number_t *c = NULL;
+
+	if (a->sign == sign_neg && b->sign == sign_pos) {
+		sign = sign_neg;
+		c = big_number_abs_add(a, b);
+		goto done;
+	}
+
+	if (a->sign == sign_pos && b->sign == sign_neg) {
+		sign = sign_pos;
+		c = big_number_abs_add(a, b);
+		goto done;
+	}
+
+	if (a->sign == sign_neg && b->sign == sign_neg) {
+		sign = abs_gt(a, b) ? sign_neg : sign_pos;
+		c = big_number_abs_sub(a, b);
+		goto done;
+	}
+
+	if (a->sign == sign_pos && b->sign == sign_pos) {
+		sign = abs_lt(a, b) ? sign_neg : sign_pos;
+		c = big_number_abs_sub(a, b);
+		goto done;
+	}
+
+done:
+	if (c == NULL)
+		return NULL;
+
+	c->sign = sign;
+	return c;
+}
+
+big_number_t *
+bn_mul(big_number_t *a, big_number_t *b)
+{
+	sign_t sign = sign_pos;
+	big_number_t *c = NULL;
+
+	sign = (a->sign == b->sign) ? sign_pos : sign_neg;
+
+	c = big_number_abs_mul(a, b);
+	if (c == NULL)
+		return NULL;
+
+	c->sign = sign;
+	return c;
 }
 
 static char *
@@ -359,11 +449,24 @@ str2bn_align(char *s)
 big_number_t *
 str2bn(const char *s)
 {
+	sign_t sign = sign_pos;
+
 	if (s == NULL || *s == '\0')
 		return NULL;
 
 	size_t n = strlen(s);
 	char *p = (char *)s;
+
+	if (*p == '+') {
+		p++;
+		sign = sign_pos;
+	}
+
+	if (*p == '-') {
+		p++;
+		sign = sign_neg;
+	}
+
 	if (*p == '0' && *(p + 1) == 'x') {
 		p += 2;
 		n -= 2;
@@ -373,6 +476,7 @@ str2bn(const char *s)
 	if (c == NULL) /* malloc error */
 		return NULL;
 
+	c->sign = sign;
 	c->size = (n % 8 == 0) ? (n / 8 + 1) : (n / 8 + 2);
 	c->data = (dword *)malloc(sizeof(dword) * c->size);
 	if (c->data == NULL) /* malloc error */
@@ -404,13 +508,17 @@ char *
 bn2str(big_number_t *bn)
 {
 	size_t n = bn->size * 8;
-	char *p = (char *)malloc(sizeof(char) * (n + 3));
+	char *p = (char *)malloc(sizeof(char) * (n + 4));
 	if (p == NULL)
 		return NULL;
 
-	memset(p, 0, n + 3);
-	*(p + 0) = '0';
-	*(p + 1) = 'x';
+	memset(p, 0, n + 4);
+	*(p + 0) = ' ';
+	*(p + 1) = '0';
+	*(p + 2) = 'x';
+
+	if (bn->sign == sign_neg)
+		*(p + 0) = '-';
 
 	size_t m = bn->size;
 	for (int i = bn->size - 1; i >= 0; i--) {
@@ -420,7 +528,7 @@ bn2str(big_number_t *bn)
 	}
 
 	if (m == 0) {
-		*(p + 2) = '0';
+		*(p + 3) = '0';
 		return p;
 	}
 
