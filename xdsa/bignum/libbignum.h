@@ -18,8 +18,26 @@ typedef signed short		sword;	/* 2 bytes */
 typedef signed int		sdword;	/* 4 bytes */
 typedef signed long long	sqword;	/* 8 bytes */
 
+/**
+ * Sign of a big number
+ * + : 0, positive
+ * - : 1, negative
+ */
 typedef enum sign_s {sign_pos=0, sign_neg} sign_t;
 
+/**
+ * A big number is defined as three parts in the following,
+ *       1. sign: 0 - positive, 1 - negative
+ *       2. data: a block of continuous dword (unsigned int)
+ *       3. size: the length of data[]
+ *
+ * NOTE:
+ *       1. In data[], data[] must end with 0x0. That is, the size of a big
+ *          number should be always >= 1.
+ *       2. We often reset the size of big number because it may end with
+ *          more than one 0x0. Hence, size may less than
+ *          sizeof(data)/sizeof(dword).
+ */
 typedef struct big_number_s {
 	sign_t sign;
 	dword *data;

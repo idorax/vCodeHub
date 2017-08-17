@@ -24,25 +24,47 @@ dump_big_number(char *tag, big_number_t *p)
 }
 
 /*
+ * Get valid size of a big number in case it ends with more than two 0x0.
+ * Note every big number must end with at least 1. that is, if the value
+ * of a big number is 0x0, its size should be 1.
+ *
+ * e.g.
+ *     1. bn->data = {0x12345678, 0x0, 0x0, 0x0}
+ *        bn->size = 0x4
+ *
+ *        The valid size is 0x2 as a matter of fact
+ *
+ *     2. bn->data = {0x0, 0x0, 0x0}
+ *        bn->size = 0x3
+ *        The valid size is 0x1 as a matter of fact
+ */
+static dword
+bn_get_valid_size(big_number_t *p)
+{
+	if (p == NULL)
+		return 0;
+
+	if (p->data == NULL)
+		return 0;
+
+	dword n = p->size;
+	for (sqword i = (sqword)p->size - 1; i >= 0; i--) {
+		if (*(p->data + i) != 0x0)
+			break;
+		n--;
+	}
+
+	return (n + 1);
+}
+
+/*
  * Compare big number a with b, return true if a is greater than b.
  */
 bool
 abs_gt(big_number_t *a, big_number_t *b)
 {
-	dword sa = a->size;
-	dword sb = b->size;
-
-	for (sqword i = (sqword)a->size - 1; i >= 0; i--) {
-		if (*(a->data + i) != 0x0)
-			break;
-		sa--;
-	}
-
-	for (sqword i = (sqword)b->size - 1; i >= 0; i--) {
-		if (*(b->data + i) != 0x0)
-			break;
-		sb--;
-	}
+	dword sa = bn_get_valid_size(a);
+	dword sb = bn_get_valid_size(b);
 
 	if (sa > sb)
 		return true;
@@ -67,20 +89,8 @@ abs_gt(big_number_t *a, big_number_t *b)
 bool
 abs_lt(big_number_t *a, big_number_t *b)
 {
-	dword sa = a->size;
-	dword sb = b->size;
-
-	for (sqword i = (sqword)a->size - 1; i >= 0; i--) {
-		if (*(a->data + i) != 0x0)
-			break;
-		sa--;
-	}
-
-	for (sqword i = (sqword)b->size - 1; i >= 0; i--) {
-		if (*(b->data + i) != 0x0)
-			break;
-		sb--;
-	}
+	dword sa = bn_get_valid_size(a);
+	dword sb = bn_get_valid_size(b);
 
 	if (sa < sb)
 		return true;
@@ -105,20 +115,8 @@ abs_lt(big_number_t *a, big_number_t *b)
 bool
 abs_eq(big_number_t *a, big_number_t *b)
 {
-	dword sa = a->size;
-	dword sb = b->size;
-
-	for (sqword i = (sqword)a->size - 1; i >= 0; i--) {
-		if (*(a->data + i) != 0x0)
-			break;
-		sa--;
-	}
-
-	for (sqword i = (sqword)b->size - 1; i >= 0; i--) {
-		if (*(b->data + i) != 0x0)
-			break;
-		sb--;
-	}
+	dword sa = bn_get_valid_size(a);
+	dword sb = bn_get_valid_size(b);
 
 	if (sa != sb)
 		return false;
@@ -132,6 +130,7 @@ abs_eq(big_number_t *a, big_number_t *b)
 		return true; /* (a->data)[@] == (b->data)[@] */
 	}
 }
+
 
 /*
  * Add 64-bit number (8 bytes) to a[] whose element is 32-bit int (4 bytes)
@@ -180,7 +179,7 @@ abs_add64(dword a[], dword n, qword n64)
 }
 
 static big_number_t *
-big_number_abs_add(big_number_t *a, big_number_t *b)
+bn_abs_add(big_number_t *a, big_number_t *b)
 {
 	dword *pmax = NULL;
 	dword *pmin = NULL;
@@ -217,11 +216,13 @@ big_number_abs_add(big_number_t *a, big_number_t *b)
 	for (dword i = 0; i < nmin; i++)
 		abs_add64(c->data + i, c->size - i, (qword)pmin[i]);
 
+	c->size = bn_get_valid_size(c);
+
 	return c;
 }
 
 static big_number_t *
-big_number_abs_sub(big_number_t *a, big_number_t *b)
+bn_abs_sub(big_number_t *a, big_number_t *b)
 {
 	big_number_t *c = NULL;
 
@@ -259,7 +260,7 @@ big_number_abs_sub(big_number_t *a, big_number_t *b)
 	abs_add64(t->data, t->size, (qword)0x1);
 
 	/* now execute big number addition */
-	c = big_number_abs_add(pmax, t);
+	c = bn_abs_add(pmax, t);
 	if (c == NULL)
 		goto done;
 
@@ -272,11 +273,16 @@ big_number_abs_sub(big_number_t *a, big_number_t *b)
 done:
 	free_big_number(t);
 
+	if (c == NULL)
+		return NULL;
+
+	c->size = bn_get_valid_size(c);
+
 	return c;
 }
 
 static big_number_t *
-big_number_abs_mul(big_number_t *a, big_number_t *b)
+bn_abs_mul(big_number_t *a, big_number_t *b)
 {
 	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
 	if (c == NULL) /* malloc error */
@@ -306,6 +312,8 @@ big_number_abs_mul(big_number_t *a, big_number_t *b)
 		}
 	}
 
+	c->size = bn_get_valid_size(c);
+
 	return c;
 }
 
@@ -329,25 +337,25 @@ bn_add(big_number_t *a, big_number_t *b)
 
 	if (a->sign == sign_neg && b->sign == sign_neg) {
 		sign = sign_neg;
-		c = big_number_abs_add(a, b);
+		c = bn_abs_add(a, b);
 		goto done;
 	}
 
 	if (a->sign == sign_pos && b->sign == sign_pos) {
 		sign = sign_pos;
-		c = big_number_abs_add(a, b);
+		c = bn_abs_add(a, b);
 		goto done;
 	}
 
 	if (a->sign == sign_neg && b->sign == sign_pos) {
 		sign = abs_gt(a, b) ? sign_neg : sign_pos;
-		c = big_number_abs_sub(a, b);
+		c = bn_abs_sub(a, b);
 		goto done;
 	}
 
 	if (a->sign == sign_pos && b->sign == sign_neg) {
 		sign = abs_gt(b, a) ? sign_neg : sign_pos;
-		c = big_number_abs_sub(a, b);
+		c = bn_abs_sub(a, b);
 		goto done;
 	}
 
@@ -367,25 +375,25 @@ bn_sub(big_number_t *a, big_number_t *b)
 
 	if (a->sign == sign_neg && b->sign == sign_pos) {
 		sign = sign_neg;
-		c = big_number_abs_add(a, b);
+		c = bn_abs_add(a, b);
 		goto done;
 	}
 
 	if (a->sign == sign_pos && b->sign == sign_neg) {
 		sign = sign_pos;
-		c = big_number_abs_add(a, b);
+		c = bn_abs_add(a, b);
 		goto done;
 	}
 
 	if (a->sign == sign_neg && b->sign == sign_neg) {
 		sign = abs_gt(a, b) ? sign_neg : sign_pos;
-		c = big_number_abs_sub(a, b);
+		c = bn_abs_sub(a, b);
 		goto done;
 	}
 
 	if (a->sign == sign_pos && b->sign == sign_pos) {
 		sign = abs_lt(a, b) ? sign_neg : sign_pos;
-		c = big_number_abs_sub(a, b);
+		c = bn_abs_sub(a, b);
 		goto done;
 	}
 
@@ -405,7 +413,7 @@ bn_mul(big_number_t *a, big_number_t *b)
 
 	sign = (a->sign == b->sign) ? sign_pos : sign_neg;
 
-	c = big_number_abs_mul(a, b);
+	c = bn_abs_mul(a, b);
 	if (c == NULL)
 		return NULL;
 
