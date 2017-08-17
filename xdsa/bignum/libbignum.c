@@ -506,6 +506,8 @@ str2bn(const char *s)
 
 	free(q); q = NULL;
 
+	c->size = bn_get_valid_size(c);
+
 	return c;
 }
 
