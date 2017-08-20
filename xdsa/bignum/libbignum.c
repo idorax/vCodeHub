@@ -19,7 +19,7 @@ dump_big_number(char *tag, big_number_t *p)
 	printf("%s : sign=%d : data=%p : size=%d :\t",
 	       tag, p->sign, p, p->size);
 	for (dword i = 0; i < p->size; i++)
-		printf("0x%08x ", (p->data)[i]);
+		printf("0x%08x ", p->data[i]);
 	printf("\n");
 }
 
@@ -72,14 +72,14 @@ abs_gt(big_number_t *a, big_number_t *b)
 		return false;
 	else { /* sa == sb */
 		for (sqword i = (sqword)sa - 1; i >= 0; i--) {
-			if ((a->data)[i] > (b->data)[i])
+			if (a->data[i] > b->data[i])
 				return true;
-			else if ((a->data)[i] < (b->data)[i])
+			else if (a->data[i] < b->data[i])
 				return false;
-			else /* ((a->data)[i] == (b->data)[i]) */
+			else /* (a->data[i] == b->data[i]) */
 				continue;
 		}
-		return false; /* (a->data)[@] == (b->data)[@] */
+		return false; /* a->data[@] == b->data[@] */
 	}
 }
 
@@ -98,14 +98,14 @@ abs_lt(big_number_t *a, big_number_t *b)
 		return false;
 	else { /* sa == sb */
 		for (sqword i = (sqword)sa - 1; i >= 0; i--) {
-			if ((a->data)[i] < (b->data)[i])
+			if (a->data[i] < b->data[i])
 				return true;
-			else if ((a->data)[i] > (b->data)[i])
+			else if (a->data[i] > b->data[i])
 				return false;
-			else /* ((a->data)[i] == (b->data)[i]) */
+			else /* (a->data[i] == b->data[i]) */
 				continue;
 		}
-		return false; /* (a->data)[@] == (b->data)[@] */
+		return false; /* a->data[@] == b->data[@] */
 	}
 }
 
@@ -122,15 +122,14 @@ abs_eq(big_number_t *a, big_number_t *b)
 		return false;
 	else { /* sa == sb */
 		for (sqword i = (sqword)sa - 1; i >= 0; i--) {
-			if ((a->data)[i] != (b->data)[i])
+			if (a->data[i] != b->data[i])
 				return false;
-			else /* ((a->data)[i] == (b->data)[i]) */
+			else /* (a->data[i] == b->data[i]) */
 				continue;
 		}
-		return true; /* (a->data)[@] == (b->data)[@] */
+		return true; /* a->data[@] == b->data[@] */
 	}
 }
-
 
 /*
  * Add 64-bit number (8 bytes) to a[] whose element is 32-bit int (4 bytes)
@@ -181,27 +180,24 @@ abs_add64(dword a[], dword n, qword n64)
 static big_number_t *
 bn_abs_add(big_number_t *a, big_number_t *b)
 {
-	dword *pmax = NULL;
-	dword *pmin = NULL;
-	dword nmax = 0;
-	dword nmin = 0;
-	if (a->size > b->size) {
-		pmax = a->data;
-		pmin = b->data;
-		nmax = a->size;
-		nmin = b->size;
+	big_number_t *c = NULL;
+
+	big_number_t *pmax = NULL;
+	big_number_t *pmin = NULL;
+
+	if (abs_gt(a, b)) {
+		pmax = a;
+		pmin = b;
 	} else {
-		pmax = b->data;
-		pmin = a->data;
-		nmax = b->size;
-		nmin = a->size;
+		pmax = b;
+		pmin = a;
 	}
 
-	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
+	c = (big_number_t *)malloc(sizeof(big_number_t));
 	if (c == NULL) /* malloc error */
 		return NULL;
 
-	c->size = nmax + 1;
+	c->size = pmax->size + 1;
 	c->data = (dword *)malloc(sizeof(dword) * c->size);
 	if (c->data == NULL) /* malloc error */
 		return NULL;
@@ -209,12 +205,12 @@ bn_abs_add(big_number_t *a, big_number_t *b)
 	memset(c->data, 0, sizeof(dword) * c->size);
 
 	/* copy the max one to dst */
-	for (dword i = 0; i < nmax; i++)
-		c->data[i] = pmax[i];
+	for (dword i = 0; i < pmax->size; i++)
+		c->data[i] = pmax->data[i];
 
 	/* add the min one to dst */
-	for (dword i = 0; i < nmin; i++)
-		abs_add64(c->data + i, c->size - i, (qword)pmin[i]);
+	for (dword i = 0; i < pmin->size; i++)
+		abs_add64(c->data + i, c->size - i, (qword)(pmin->data[i]));
 
 	c->size = bn_get_valid_size(c);
 
@@ -250,13 +246,13 @@ bn_abs_sub(big_number_t *a, big_number_t *b)
 
 	/* copy the min one to the temp big number */
 	for (dword i = 0; i < pmin->size; i++)
-		(t->data)[i] = (pmin->data)[i];
-	/* pick up (t->data)[-1] then set sign */
-	(t->data)[pmax->size - 1] = 0x1;
+		t->data[i] = pmin->data[i];
+	/* pick up t->data[-1] then set sign */
+	t->data[pmax->size - 1] = sign_neg;
 
 	/* get complement of the temp big number */
 	for (dword i = 0; i < pmax->size; i++)
-		(t->data)[i] = ~((t->data)[i]);
+		t->data[i] = ~(t->data[i]);
 	abs_add64(t->data, t->size, (qword)0x1);
 
 	/* now execute big number addition */
@@ -532,7 +528,7 @@ bn2str(big_number_t *bn)
 
 	size_t m = bn->size;
 	for (int i = bn->size - 1; i >= 0; i--) {
-		if ((bn->data[i]) != 0x0)
+		if (bn->data[i] != 0x0)
 			break;
 		m--;
 	}
@@ -544,7 +540,7 @@ bn2str(big_number_t *bn)
 
 	for (int i = m - 1; i >= 0; i--) {
 		char buf[9] = { 0 };
-		snprintf(buf, sizeof(buf), "%08x", (bn->data)[i]);
+		snprintf(buf, sizeof(buf), "%08x", bn->data[i]);
 		strncat(p, buf, n - 2);
 	}
 
