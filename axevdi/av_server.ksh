@@ -18,8 +18,16 @@ base64 $src_file | cat -n > $src_file_b64
 
 echo "#2 encode ..."
 PNGDIR=$TMPDIR/${NAME}PNGDIR
+PNGDIR_BACKUP=${PNGDIR_BACKUP:-""}
 rm -rf $PNGDIR && mkdir -p $PNGDIR
 $CDIR/av_encode_dynamic $PNGDIR/foo:9 $src_file_b64
+if [[ -d $PNGDIR_BACKUP ]]; then
+	print "copy b64 file from $src_file_b64 to $PNGDIR_BACKUP/b64.out ..."
+	cp $src_file_b64 $PNGDIR_BACKUP/b64.out
+
+	print "copy png files from $PNGDIR to $PNGDIR_BACKUP ..."
+	cp $PNGDIR/*.png $PNGDIR_BACKUP
+fi
 rm -f $src_file_b64
 
 trap "rm -rf $PNGDIR && pkill eog" EXIT

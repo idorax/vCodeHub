@@ -13,7 +13,7 @@ xoutfile=${2:-"$dpollimg/foo.out"}
 interval=${3:-"0"}
 capmode=${CAPMODE:-"F"} # can be F or S; F: "-f", S: "-s X,Y,W,H"
 
-retry_times=${RETRY_TIMES:-"30"}
+retry_times=${RETRY_TIMES:-"20"}
 
 [[ ! -d $dpollimg ]] && mkdir -p $dpollimg
 
@@ -65,7 +65,7 @@ while :; do
 
 		$CDIR/av_click_once $X2 $Y2 > /dev/null 2>&1
 	else
-		print "Oops, catch nothing ..." >&2
+		print "Oops, catch nothing ...${count}..." >&2
 		(( count += 1 ))
 		if (( count > $retry_times )); then
 			t_end=$(date)
