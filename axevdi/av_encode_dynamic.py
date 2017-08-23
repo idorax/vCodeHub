@@ -10,6 +10,51 @@ import Image
 
 NUM_LINES_ENCODE = 10 # encode 10 lines by default
 
+def extract_lineno(nlines):
+    l_lineno = []
+    for line in nlines.split('\n'):
+        s0 = line.rstrip('\n')
+        if len(s0.strip()) == 0:
+            continue
+
+        if s0.find('\t') == -1:
+            continue
+
+        s1 = s0.split('\t')[0].strip().rstrip()
+        try:
+            n1 = int(s1)
+        except:
+            continue
+
+        if n1 not in l_lineno:
+            l_lineno.append(n1)
+
+    l_lineno.sort()
+    return l_lineno
+
+def get_text_bylineno(nlines, lineno):
+    out = ""
+
+    for line in nlines.split('\n'):
+        s0 = line.rstrip('\n')
+        if len(s0.strip()) == 0:
+            continue
+
+        if s0.find('\t') == -1:
+            continue
+
+        s1 = s0.split('\t')[0].strip().rstrip()
+        try:
+            n1 = int(s1)
+        except:
+            continue
+
+        if n1 == lineno:
+            out = s0.split('\t')[1].strip().rstrip()
+            break
+
+    return out
+
 def decode_image(img_file):
     scanner = zbar.ImageScanner()
     scanner.parse_config('enable')
@@ -27,8 +72,43 @@ def encode_image(s, img_file):
     img = qrcode.make(s)
     img.save(img_file)
     out = decode_image(img_file)
-    if s != out:
-        return 1
+    if s != out: # validate line by line
+        print ">" * 120
+        print "Oops, failed to encode the input, now validate line by line ..."
+        print "Input:\n%s\nOutput:\n%s\n" % (s, out)
+
+        if len(out.strip().rstrip()) == 0:
+            print "... the output is nothing, exit ..."
+            print "<" * 120
+            return 1
+
+        l_lineno_exp = extract_lineno(s)
+
+        for lineno in l_lineno_exp:
+            got = get_text_bylineno(out, lineno)
+            if len(got) == 0:
+                print "<<<got<<<: got nothing by lineno %d ..." % lineno
+                print "<" * 120
+                return 1
+
+            exp = get_text_bylineno(s,   lineno)
+            if len(exp) == 0:
+                print ">>>exp>>>: got nothing by lineno %d ..." % lineno
+                print "<" * 120
+                return 1
+
+            if got != exp:
+                print ">>>exp>>>: %d\t%s" % (lineno, exp)
+                print "<<<got<<<: %d\t%s" % (lineno, got)
+                if got[0:76] != exp: # NOTE: only validate the first 76 chars
+                    print "<" * 120
+                    return 1
+            else:
+                print ">>>GOOD<<: %d\t%s" % (lineno, exp)
+
+        print "ALSO OKAY !!!"
+        print "<" * 120
+
     return 0
 
 def read_mlines(l, n, start, m):
