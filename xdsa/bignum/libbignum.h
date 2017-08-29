@@ -49,6 +49,7 @@ typedef enum {false, true} bool;
 big_number_t *bn_add(big_number_t *a, big_number_t *b);
 big_number_t *bn_sub(big_number_t *a, big_number_t *b);
 big_number_t *bn_mul(big_number_t *a, big_number_t *b);
+big_number_t *bn_fac(big_number_t *a);
 
 void free_big_number(big_number_t *p);
 void dump_big_number(char *tag, big_number_t *p);

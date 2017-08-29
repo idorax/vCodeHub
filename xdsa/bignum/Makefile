@@ -5,7 +5,10 @@
 CC	= gcc
 CFLAGS	= -g -Wall -std=c99
 
-TARGETS	= foo bar
+TARGETS	= foo \
+	  foo_fac \
+	  bar \
+	  bar_fac
 
 all: $(TARGETS)
 
@@ -15,10 +18,19 @@ foo: foo.o libbignum.o
 foo.o: foo.c
 	$(CC) $(CFLAGS) -c $<
 
+foo_fac: foo_fac.o libbignum.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+foo_fac.o: foo_fac.c
+	$(CC) $(CFLAGS) -c $<
+
 libbignum.o: libbignum.c libbignum.h
 	$(CC) $(CFLAGS) -c $<
 
 bar: bar.py
+	cp $< $@ && chmod +x $@
+
+bar_fac: bar_fac.py
 	cp $< $@ && chmod +x $@
 
 clean:

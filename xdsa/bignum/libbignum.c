@@ -7,7 +7,7 @@
 #include <string.h>
 #include "libbignum.h"
 
-/*
+/**
  * Dump big number with specified tag
  */
 void
@@ -23,7 +23,30 @@ dump_big_number(char *tag, big_number_t *p)
 	printf("\n");
 }
 
-/*
+/**
+ * New a big number with size and initial value (dword)
+ */
+static big_number_t *
+new_big_number(dword size, dword iv)
+{
+	big_number_t *p = (big_number_t *)malloc(sizeof(big_number_t));
+	if (p == NULL) /* malloc error */
+		return NULL;
+
+	p->size = size;
+	p->data = (dword *)malloc(sizeof(dword) * p->size);
+	if (p->data == NULL) { /* malloc error */
+		free(p);
+		return NULL;
+	}
+
+	memset(p->data, 0, sizeof(dword) * p->size);
+	p->data[0] = iv;
+
+	return p;
+}
+
+/**
  * Get valid size of a big number in case it ends with more than two 0x0.
  * Note every big number must end with at least 1. that is, if the value
  * of a big number is 0x0, its size should be 1.
@@ -57,7 +80,7 @@ bn_get_valid_size(big_number_t *p)
 	return (n + 1);
 }
 
-/*
+/**
  * Compare big number a with b, return true if a is greater than b.
  */
 bool
@@ -83,7 +106,7 @@ abs_gt(big_number_t *a, big_number_t *b)
 	}
 }
 
-/*
+/**
  * Compare big number a with b, return true if a is less than b.
  */
 bool
@@ -109,7 +132,7 @@ abs_lt(big_number_t *a, big_number_t *b)
 	}
 }
 
-/*
+/**
  * Compare big number a with b, return true if a is equal to b.
  */
 bool
@@ -131,7 +154,28 @@ abs_eq(big_number_t *a, big_number_t *b)
 	}
 }
 
-/*
+/**
+ * Verify a big number is zero or not.
+ */
+static bool
+is_zero(big_number_t *p)
+{
+	if (p == NULL)
+		return false;
+
+	if (p->data == NULL)
+		return false;
+
+	dword counter = 0;
+	for (dword i = 0; i < p->size; i++) {
+		if (p->data[i] == 0x0)
+			counter++;
+	}
+
+	return (counter == p->size ? true : false);
+}
+
+/**
  * Add 64-bit number (8 bytes) to a[] whose element is 32-bit int (4 bytes)
  *
  * e.g.
@@ -180,8 +224,6 @@ abs_add64(dword a[], dword n, qword n64)
 static big_number_t *
 bn_abs_add(big_number_t *a, big_number_t *b)
 {
-	big_number_t *c = NULL;
-
 	big_number_t *pmax = NULL;
 	big_number_t *pmin = NULL;
 
@@ -193,16 +235,9 @@ bn_abs_add(big_number_t *a, big_number_t *b)
 		pmin = a;
 	}
 
-	c = (big_number_t *)malloc(sizeof(big_number_t));
-	if (c == NULL) /* malloc error */
+	big_number_t *c = new_big_number(pmax->size + 1, 0x0);
+	if (c == NULL)
 		return NULL;
-
-	c->size = pmax->size + 1;
-	c->data = (dword *)malloc(sizeof(dword) * c->size);
-	if (c->data == NULL) /* malloc error */
-		return NULL;
-
-	memset(c->data, 0, sizeof(dword) * c->size);
 
 	/* copy the max one to dst */
 	for (dword i = 0; i < pmax->size; i++)
@@ -234,15 +269,9 @@ bn_abs_sub(big_number_t *a, big_number_t *b)
 	}
 
 	/* allocate a temp big number */
-	big_number_t *t = (big_number_t *)malloc(sizeof(big_number_t));
-	if (t == NULL) /* malloc error */
+	big_number_t *t = new_big_number(pmax->size, 0x0);
+	if (t == NULL)
 		return NULL;
-	t->size = pmax->size;
-	t->data = (dword *)malloc(sizeof(dword) * t->size);
-	if (t->data == NULL) /* malloc error */
-		goto done;
-
-	memset(t->data, 0, sizeof(dword) * t->size);
 
 	/* copy the min one to the temp big number */
 	for (dword i = 0; i < pmin->size; i++)
@@ -266,30 +295,18 @@ bn_abs_sub(big_number_t *a, big_number_t *b)
 	 */
 	*(c->data + c->size - 2) = 0x0;
 
+	c->size = bn_get_valid_size(c);
 done:
 	free_big_number(t);
-
-	if (c == NULL)
-		return NULL;
-
-	c->size = bn_get_valid_size(c);
-
 	return c;
 }
 
 static big_number_t *
 bn_abs_mul(big_number_t *a, big_number_t *b)
 {
-	big_number_t *c = (big_number_t *)malloc(sizeof(big_number_t));
-	if (c == NULL) /* malloc error */
+	big_number_t *c = new_big_number(a->size + b->size, 0x0);
+	if (c == NULL)
 		return NULL;
-
-	c->size = a->size + b->size;
-	c->data = (dword *)malloc(sizeof(dword) * c->size);
-	if (c->data == NULL) /* malloc error */
-		return NULL;
-
-	memset(c->data, 0, sizeof(dword) * c->size);
 
 	dword *adp = a->data;
 	dword *bdp = b->data;
@@ -311,6 +328,52 @@ bn_abs_mul(big_number_t *a, big_number_t *b)
 	c->size = bn_get_valid_size(c);
 
 	return c;
+}
+
+static big_number_t *
+bn_abs_fac(big_number_t *a)
+{
+	big_number_t *i = new_big_number(a->size + 1, 1);
+	if (i == NULL)
+		return NULL;
+
+	/* return 1 if a is 0x0 */
+	if (is_zero(a)) {
+		i->size = bn_get_valid_size(i);
+		return i;
+	}
+
+	/*
+	 * implement factorial by leveraging a pretty simple algorithm
+	 * in the following:
+	 *
+	 *     sum = 1;
+	 *     for (i = 1; i <= a; i++) {
+	 *         mus = sum * i;
+	 *         sum = mus;
+	 *     }
+	 *
+	 */
+	big_number_t *sum = new_big_number(2, 1); /* sum = 1 */
+	if (sum == NULL)
+		return NULL;
+	while (abs_le(i, a)) {
+		big_number_t *mus = bn_abs_mul(sum, i); /* mus = sum * i */
+
+		#define _BN_SET(x, y) do { \
+				big_number_t *old_x = x; \
+				x = y; \
+				free_big_number(old_x); \
+				y = NULL; \
+			} while (0);
+		_BN_SET(sum, mus); /* sum = mus */
+
+		abs_add64(i->data, i->size, (qword)1); /* i++ */
+	}
+
+	sum->sign = sign_pos;
+	sum->size = bn_get_valid_size(sum);
+	return sum;
 }
 
 void
@@ -415,6 +478,14 @@ bn_mul(big_number_t *a, big_number_t *b)
 
 	c->sign = sign;
 	return c;
+}
+
+big_number_t *
+bn_fac(big_number_t *a)
+{
+	if (a->sign == sign_neg)
+		return NULL;
+	return bn_abs_fac(a);
 }
 
 static char *

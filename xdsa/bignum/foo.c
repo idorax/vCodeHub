@@ -55,9 +55,11 @@ main(int argc, char *argv[])
 	char *pc = bn2str(c);
 	char *pd = bn2str(d);
 	char *pe = bn2str(e);
+
 	printf("\n%s == %s + %s\n", pc, pa, pb);
 	printf("\n%s == %s - %s\n", pd, pa, pb);
 	printf("\n%s == %s * %s\n", pe, pa, pb);
+
 	free(pa);
 	free(pb);
 	free(pc);
