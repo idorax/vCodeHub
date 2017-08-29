@@ -7,6 +7,7 @@ CFLAGS	= -g -Wall -std=c99
 
 TARGETS	= foo \
 	  foo_fac \
+	  foo_pow \
 	  bar \
 	  bar_fac
 
@@ -22,6 +23,12 @@ foo_fac: foo_fac.o libbignum.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 foo_fac.o: foo_fac.c
+	$(CC) $(CFLAGS) -c $<
+
+foo_pow: foo_pow.o libbignum.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+foo_pow.o: foo_pow.c
 	$(CC) $(CFLAGS) -c $<
 
 libbignum.o: libbignum.c libbignum.h

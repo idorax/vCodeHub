@@ -330,10 +330,20 @@ bn_abs_mul(big_number_t *a, big_number_t *b)
 	return c;
 }
 
+/**
+ * Set big number a with big number b, i.e. a = b.
+ * Note that we free the old a once a is set
+ */
+#define BN_SET(a, b)	do { \
+	big_number_t *a##b = (a); \
+	(a) = (b); \
+	free_big_number(a##b); \
+} while (0)
+
 static big_number_t *
 bn_abs_fac(big_number_t *a)
 {
-	big_number_t *i = new_big_number(a->size + 1, 1);
+	big_number_t *i = new_big_number(a->size + 1, 0x1);
 	if (i == NULL)
 		return NULL;
 
@@ -354,21 +364,45 @@ bn_abs_fac(big_number_t *a)
 	 *     }
 	 *
 	 */
-	big_number_t *sum = new_big_number(2, 1); /* sum = 1 */
+	big_number_t *sum = new_big_number(0x2, 0x1); /* sum = 1 */
 	if (sum == NULL)
 		return NULL;
+
 	while (abs_le(i, a)) {
 		big_number_t *mus = bn_abs_mul(sum, i); /* mus = sum * i */
+		if (mus == NULL) {
+			free_big_number(sum);
+			free_big_number(i);
+			return NULL;
+		}
 
-		#define _BN_SET(x, y) do { \
-				big_number_t *old_x = x; \
-				x = y; \
-				free_big_number(old_x); \
-				y = NULL; \
-			} while (0);
-		_BN_SET(sum, mus); /* sum = mus */
+		BN_SET(sum, mus); /* sum = mus */
 
-		abs_add64(i->data, i->size, (qword)1); /* i++ */
+		abs_add64(i->data, i->size, (qword)0x1); /* i++ */
+	}
+
+	free_big_number(i);
+
+	sum->sign = sign_pos;
+	sum->size = bn_get_valid_size(sum);
+	return sum;
+}
+
+static big_number_t *
+bn_abs_pow(big_number_t *a, dword n)
+{
+	big_number_t *sum = new_big_number(a->size + 1, 0x1);
+	if (sum == NULL)
+		return NULL;
+
+	for (dword i = 0; i < n; i++) {
+		big_number_t *mus = bn_abs_mul(sum, a);
+		if (mus == NULL) {
+			free_big_number(sum);
+			return NULL;
+		}
+
+		BN_SET(sum, mus); /* sum = mus */
 	}
 
 	sum->sign = sign_pos;
@@ -486,6 +520,28 @@ bn_fac(big_number_t *a)
 	if (a->sign == sign_neg)
 		return NULL;
 	return bn_abs_fac(a);
+}
+
+big_number_t *
+bn_pow(big_number_t *a, dword n)
+{
+	sign_t sign = sign_pos;
+	big_number_t *c = NULL;
+
+	/*
+	 * XXX: You may ask why n is not defined as big_number_t but dword for
+	 *      the time being. Well, we shall have more work to tell n is odd
+	 *      or even if we define n as big_number_t.
+	 */
+	if (a->sign == sign_neg)
+		sign = (n % 2 == 0) ? sign_pos : sign_neg;
+
+	c = bn_abs_pow(a, n);
+	if (c == NULL)
+		return NULL;
+
+	c->sign = sign;
+	return c;
 }
 
 static char *
