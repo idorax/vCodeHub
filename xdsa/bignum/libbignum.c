@@ -336,10 +336,6 @@ bn_abs_mul(big_number_t *a, big_number_t *b)
 static big_number_t *
 _abs_shl_offset(big_number_t *p, byte offset)
 {
-	/* offset must be in [0, 31] */
-	if (offset > 31)
-		return NULL;
-
 	big_number_t *t = new_big_number(p->size + 1, (dword)(1 << offset));
 	if (t == NULL)
 		return NULL;
@@ -371,7 +367,7 @@ _abs_shl_segment(big_number_t *p, dword segment)
 }
 
 /**
- * Left shift a bit number by n bits
+ * Left shift a big number by n bits
  */
 big_number_t *
 abs_shl(big_number_t *a, qword n)
