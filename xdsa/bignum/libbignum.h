@@ -66,6 +66,8 @@ bool abs_eq(big_number_t *a, big_number_t *b);
 #define abs_le(a, b) !abs_gt((a), (b))
 #define abs_ne(a, b) !abs_eq((a), (b))
 
+big_number_t *abs_shl(big_number_t *a, qword n);
+
 #ifdef	__cplusplus
 }
 #endif
