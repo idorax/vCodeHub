@@ -9,6 +9,7 @@ TARGETS	= foo \
 	  foo_fac \
 	  foo_pow \
 	  foo_shl \
+	  foo_shr \
 	  bar \
 	  bar_fac
 
@@ -36,6 +37,12 @@ foo_shl: foo_shl.o libbignum.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 foo_shl.o: foo_shl.c
+	$(CC) $(CFLAGS) -c $<
+
+foo_shr: foo_shr.o libbignum.o
+	$(CC) $(CFLAGS) -o $@ $^
+
+foo_shr.o: foo_shr.c
 	$(CC) $(CFLAGS) -c $<
 
 libbignum.o: libbignum.c libbignum.h

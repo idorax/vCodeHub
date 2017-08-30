@@ -33,6 +33,7 @@ new_big_number(dword size, dword iv)
 	if (p == NULL) /* malloc error */
 		return NULL;
 
+	p->sign = sign_pos;
 	p->size = size;
 	p->data = (dword *)malloc(sizeof(dword) * p->size);
 	if (p->data == NULL) { /* malloc error */
@@ -367,6 +368,68 @@ done0:
 	return c;
 }
 
+static inline void
+abs_shr_segment(big_number_t *a, dword segment)
+{
+	for (dword i = 0; i < segment; i++) {
+		for (dword j = 0; j < a->size - 1; j++)
+			a->data[j] = a->data[j+1];
+
+		a->size--;
+		if (a->size <= 1)
+			break;
+	}
+}
+
+#define get_low_bits(a, n)  ((a) & ((1 << (n)) - 1))
+#define get_high_bits(a, n) (((a) >> (32 - (n))) & ((1 << ((n))) - 1))
+static inline void
+abs_shr_offset(big_number_t *a, byte offset)
+{
+	for (dword i = 0; i < a->size - 1; i++) {
+		dword prev_hi = get_high_bits(a->data[i], 32 - offset);
+		dword next_lo = get_low_bits(a->data[i+1], offset);
+		dword this_lo = prev_hi;
+		dword this_hi = next_lo << (32 - offset);
+		dword this = this_hi | this_lo;
+		a->data[i] = this;
+	}
+}
+
+/**
+ * Right shift a big number by n bits, i.e. BigNumber >> N (in [0 .. 2^64-1])
+ */
+big_number_t *
+abs_shr(big_number_t *a, qword n)
+{
+	big_number_t *c = NULL;
+
+	qword segment = n / 32;
+	qword offset  = n % 32;
+
+	c = new_big_number(a->size, 0x0);
+	if (c == NULL)
+		goto done0;
+
+	if (is_zero(a))
+		goto done0;
+
+	for (dword i = 0; i < a->size - 1; i++)
+		c->data[i] = a->data[i];
+
+	/* 1. right shift dword by dword */
+	if (segment != 0)
+		abs_shr_segment(c, (dword)segment);
+
+	/* 2. right shift bit by bit */
+	if (offset != 0)
+		abs_shr_offset(c, (byte)offset);
+
+	c->size = bn_get_valid_size(c);
+done0:
+	return c;
+}
+
 /**
  * Set big number a with big number b, i.e. a = b.
  * Note that we free the old a once a is set
@@ -420,7 +483,6 @@ bn_abs_fac(big_number_t *a)
 
 	free_big_number(i);
 
-	sum->sign = sign_pos;
 	sum->size = bn_get_valid_size(sum);
 	return sum;
 }
@@ -442,7 +504,6 @@ bn_abs_pow(big_number_t *a, dword n)
 		BN_SET(sum, mus); /* sum = mus */
 	}
 
-	sum->sign = sign_pos;
 	sum->size = bn_get_valid_size(sum);
 	return sum;
 }
