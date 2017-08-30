@@ -331,61 +331,39 @@ bn_abs_mul(big_number_t *a, big_number_t *b)
 }
 
 /**
- * Left shift a big number bit by bit, offset in [0, 31] bits are shifted
- */
-static big_number_t *
-_abs_shl_offset(big_number_t *p, byte offset)
-{
-	big_number_t *t = new_big_number(p->size + 1, (dword)(1 << offset));
-	if (t == NULL)
-		return NULL;
-
-	big_number_t *c = bn_abs_mul(p, t);
-	if (c == NULL)
-		goto done;
-
-	c->size = bn_get_valid_size(c);
-done:
-	free_big_number(t);
-	return c;
-}
-
-/**
- * Left shift a big number dword by dword
- */
-static big_number_t *
-_abs_shl_segment(big_number_t *p, dword segment)
-{
-	big_number_t *c = new_big_number(p->size + segment, 0x0);
-	if (c == NULL)
-		return NULL;
-
-	for (dword i = 0; i < p->size; i++)
-		c->data[i + segment] = p->data[i];
-
-	return c;
-}
-
-/**
- * Left shift a big number by n bits
+ * Left shift a big number by n bits, i.e. BigNumber << N (in [0 .. 2^64-1])
  */
 big_number_t *
 abs_shl(big_number_t *a, qword n)
 {
+	big_number_t *c = NULL;
+
 	qword segment = n / 32;
 	qword offset  = n % 32;
 
-	big_number_t *t = _abs_shl_segment(a, (dword)segment);
-	if (t == NULL)
-		return NULL;
+	/* 1. left shift the big number dword by dword */
+	big_number_t *t1 = new_big_number(a->size + (dword)segment, 0x0);
+	if (t1 == NULL)
+		goto done0;
 
-	big_number_t *c = _abs_shl_offset(t, (byte)offset);
+	for (dword i = 0; i < a->size; i++)
+		t1->data[i + segment] = a->data[i];
+
+	/* 2. left shift the big number bit by bit */
+	big_number_t *t2 = new_big_number(0x2, 1 << offset);
+	if (t2 == NULL)
+		goto done1;
+
+	c = bn_abs_mul(t1, t2);
 	if (c == NULL)
-		goto done;
+		goto done2;
 
 	c->size = bn_get_valid_size(c);
-done:
-	free_big_number(t);
+done2:
+	free_big_number(t2);
+done1:
+	free_big_number(t1);
+done0:
 	return c;
 }
 
