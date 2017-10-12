@@ -147,12 +147,18 @@ merge(list_t *head1, list_t *head2)
 		p = head1;
 	}
 
-	/* insert per node of list p to out one by one */
+	/*
+	 * insert per node of list 'p' to the dst list one by one, and always
+	 * pick up the previous node inserted as the new head for getting good
+	 * time complexity once list_insert() is called
+	 */
+	list_t *head = out;
 	while (p != NULL) {
 		list_t *this = p;
 		p = p->next;
 		this->next = NULL;
-		list_insert(&out, this);
+		list_insert(&head, this);
+		head = this;
 	}
 
 	return out;
