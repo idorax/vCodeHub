@@ -62,6 +62,9 @@ init(list_t **head, int *a, int n)
 	}
 }
 
+/**
+ * Insertion Sort on a Single Linked List : insert a node to the sorted list
+ */
 static void
 list_insert(list_t **head, list_t *node)
 {
@@ -98,6 +101,9 @@ list_insert(list_t **head, list_t *node)
 	}
 }
 
+/**
+ * Insertion Sort on a Single Linked List
+ */
 static void
 list_sort(list_t **head)
 {
@@ -126,6 +132,7 @@ merge(list_t *head1, list_t *head2)
 {
 	if (head1 == NULL)
 		return head2;
+
 	if (head2 == NULL)
 		return head1;
 
@@ -152,7 +159,10 @@ merge(list_t *head1, list_t *head2)
 }
 
 /**
- * semiliar to strtok_r()
+ * Covert string (its delimiter is ',') to an array of int, which is similar to
+ * strtok_r(). Note that the caller must free the memory of the array. e.g.
+ *     char *s = "1,2,3,4,5,6"
+ *     return {1, 2, 3, 4, 5, 6}
  */
 static int *
 str2list(char *s, int *len)
