@@ -7,6 +7,7 @@ CFLAGS	+= -g -Wall -m32 -std=c99
 TARGETS	=  reverse \
 	   reverse2 \
 	   sort \
+	   merge \
 	   test
 
 all: ${TARGETS}
@@ -18,6 +19,9 @@ reverse2: reverse2.c
 	${CC} ${CFLAGS} -o $@ $<
 
 sort: sort.c
+	${CC} ${CFLAGS} -o $@ $<
+
+merge: merge.c
 	${CC} ${CFLAGS} -o $@ $<
 
 test: test.ksh
