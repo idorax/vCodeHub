@@ -77,7 +77,7 @@ list_insert(list_t **head, list_t *node)
 	list_t *node_prev = *head;
 	list_t *node_next = NULL;
 	for (list_t *p = *head; p != NULL; p = p->next) {
-		if (p->data < node->data) {
+		if (p->data <= node->data) {
 			node_prev = p;
 			continue;
 		}
