@@ -124,6 +124,8 @@ list_sort(list_t **head)
 	*head = headp; /* always save headp back even if headp == *head */
 }
 
+#ifdef _XXX_LIST_INSERT_
+
 /**
  * Merge two sorted single linked lists (dst and src).
  */
@@ -163,6 +165,55 @@ merge(list_t *head1, list_t *head2)
 
 	return out;
 }
+
+#else /* with better performance */
+
+static void
+list_insert_node_tail(list_t **head, list_t *node)
+{
+	static list_t *tail = NULL;
+
+	if (*head == NULL) {
+		*head = tail = node;
+		return;
+	}
+
+	tail->next = node;
+	tail = node;
+}
+
+list_t *
+merge(list_t *head1, list_t *head2)
+{
+	list_t *out = NULL;
+	list_t *p1 = head1;
+	list_t *p2 = head2;
+
+	while (p1 != NULL && p2 != NULL) {
+		list_t *node = NULL;
+
+		if (p1->data < p2->data) {
+			node = p1;		   /* 1. save p1 */
+			p1 = p1->next;		   /* 2. move p1 forward */
+		} else {
+			node = p2;		   /* 1. save p2 */
+			p2 = p2->next;		   /* 2. move p2 forward */
+		}
+
+		node->next = NULL;		   /* 3. cut node's next off */
+		list_insert_node_tail(&out, node); /* 4. append node to out */
+	}
+
+	if (p1 != NULL) /* link the left of list 1 to the tail of out */
+		list_insert_node_tail(&out, p1);
+
+	if (p2 != NULL) /* link the left of list 2 to the tail of out */
+		list_insert_node_tail(&out, p2);
+
+	return out;
+}
+
+#endif
 
 /**
  * Covert string (its delimiter is ',') to an array of int, which is similar to
@@ -239,6 +290,9 @@ main(int argc, char *argv[])
 	show(head2);
 	list_t *p = merge(head1, head2);
 	show(p);
+	//list_t *p1 = merge(head1, NULL); show(p1);
+	//list_t *p2 = merge(NULL, head2); show(p2);
+	//list_t *p3 = merge(NULL, NULL);  show(p3);
 
 	fini(head1); /* destroy linked list 1 */
 	fini(head2); /* destroy linked list 2 */
