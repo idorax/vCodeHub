@@ -294,8 +294,7 @@ main(int argc, char *argv[])
 	//list_t *p2 = merge(NULL, head2); show(p2);
 	//list_t *p3 = merge(NULL, NULL);  show(p3);
 
-	fini(head1); /* destroy linked list 1 */
-	fini(head2); /* destroy linked list 2 */
+	fini(p); /* destroy the merged linked list */
 
 	return 0;
 }
