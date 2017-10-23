@@ -8,6 +8,7 @@ TARGETS	=  reverse \
 	   reverse2 \
 	   sort \
 	   merge \
+	   cross \
 	   test
 
 all: ${TARGETS}
@@ -22,6 +23,9 @@ sort: sort.c
 	${CC} ${CFLAGS} -o $@ $<
 
 merge: merge.c
+	${CC} ${CFLAGS} -o $@ $<
+
+cross: cross.c
 	${CC} ${CFLAGS} -o $@ $<
 
 test: test.ksh
