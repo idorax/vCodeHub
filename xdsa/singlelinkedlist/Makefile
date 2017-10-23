@@ -3,7 +3,7 @@
 #
 
 CC	=  gcc
-CFLAGS	+= -g -Wall -m32 -std=c99
+CFLAGS	+= -g -Wall -std=c99
 TARGETS	=  reverse \
 	   reverse2 \
 	   sort \

@@ -169,23 +169,19 @@ merge(list_t *head1, list_t *head2)
 #else /* with better performance */
 
 static void
-list_insert_node_tail(list_t **head, list_t *node)
+list_insert_node_tail(list_t **head, list_t *tail, list_t *node)
 {
-	static list_t *tail = NULL;
-
-	if (*head == NULL) {
-		*head = tail = node;
-		return;
-	}
-
-	tail->next = node;
-	tail = node;
+	if (tail == NULL)
+		*head = node;
+	else
+		tail->next = node;
 }
 
 list_t *
 merge(list_t *head1, list_t *head2)
 {
 	list_t *out = NULL;
+	list_t *tail = out;
 	list_t *p1 = head1;
 	list_t *p2 = head2;
 
@@ -193,22 +189,24 @@ merge(list_t *head1, list_t *head2)
 		list_t *node = NULL;
 
 		if (p1->data < p2->data) {
-			node = p1;		   /* 1. save p1 */
-			p1 = p1->next;		   /* 2. move p1 forward */
+			node = p1;	/* 1. save p1 to node */
+			p1 = p1->next;	/* 2. move p1 forward */
 		} else {
-			node = p2;		   /* 1. save p2 */
-			p2 = p2->next;		   /* 2. move p2 forward */
+			node = p2;	/* 1. save p2 to node */
+			p2 = p2->next;	/* 2. move p2 forward */
 		}
 
-		node->next = NULL;		   /* 3. cut node's next off */
-		list_insert_node_tail(&out, node); /* 4. append node to out */
+		node->next = NULL;	/* 3. cut node's next off */
+					/* 4. append node to out */
+		list_insert_node_tail(&out, tail, node);
+		tail = node;		/* 5. update the tail */
 	}
 
 	if (p1 != NULL) /* link the left of list 1 to the tail of out */
-		list_insert_node_tail(&out, p1);
+		list_insert_node_tail(&out, tail, p1);
 
 	if (p2 != NULL) /* link the left of list 2 to the tail of out */
-		list_insert_node_tail(&out, p2);
+		list_insert_node_tail(&out, tail, p2);
 
 	return out;
 }
@@ -288,13 +286,13 @@ main(int argc, char *argv[])
 
 	show(head1);
 	show(head2);
-	list_t *p = merge(head1, head2);
-	show(p);
-	//list_t *p1 = merge(head1, NULL); show(p1);
-	//list_t *p2 = merge(NULL, head2); show(p2);
-	//list_t *p3 = merge(NULL, NULL);  show(p3);
 
-	fini(p); /* destroy the merged linked list */
+	list_t *p0 = merge(NULL, NULL);   printf("P0:\n"); show(p0);
+	list_t *p1 = merge(head1, NULL);  printf("P1:  "); show(p1);
+	list_t *p2 = merge(NULL, head2);  printf("P2:  "); show(p2);
+	list_t *p3 = merge(head1, head2); printf("P3:  "); show(p3);
+
+	fini(p3); /* destroy the merged linked list */
 
 	return 0;
 }
