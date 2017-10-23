@@ -89,6 +89,8 @@ crpt_init(list_t *head1, list_t *head2, int index)
 	return head2;
 }
 
+#ifdef _XXX_USE_REVERSE_
+
 /**
  * Reverse a single linked list
  */
@@ -156,6 +158,46 @@ crpt_detect(list_t *head1, list_t *head2)
 
 	return flag;
 }
+
+#else /* The time complexity is O(m + n) */
+
+/**
+ * Get the tail node of list
+ *
+ * NOTE: If list 1 and list 2 have any crosspoint, they should have the same
+ *       tail node.
+ */
+static list_t *
+list_get_tail(list_t *head)
+{
+	if (head == NULL)
+		return NULL;
+
+	list_t *tail = head;
+	while (tail->next != NULL)
+		tail = tail->next;
+	return tail;
+}
+
+/**
+ * Detect list 1 and 2 have crosspoint, return true if yes
+ */
+static bool
+crpt_detect(list_t *head1, list_t *head2)
+{
+	if (head1 == NULL)
+		return false;
+
+	if (head2 == NULL)
+		return false;
+
+	list_t *tail1 = list_get_tail(head1);
+	list_t *tail2 = list_get_tail(head2);
+
+	return (tail1 == tail2) ? true : false;
+}
+
+#endif
 
 /**
  * Get the first node address of crosspoint of list 1 and 2
