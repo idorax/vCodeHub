@@ -3,7 +3,7 @@
  */
 
 /**
- * This small program is to reverse every k nodes of a single linked list.
+ * This small program is to reverse every k nodes of a singly linked list.
  * Note if the list size is not a multiple of k, then leave the remainder
  * nodes as is.
  *
@@ -79,7 +79,7 @@ get_length(list_t *head)
 
 #ifdef _USE_AUX
 static void
-reverse_single_linked_list(list_t **head)
+reverse_singly_linked_list(list_t **head)
 {
 	if (*head == NULL)
 		return;
@@ -109,7 +109,7 @@ reverse_single_linked_list(list_t **head)
 }
 #else
 static void
-reverse_single_linked_list(list_t **head)
+reverse_singly_linked_list(list_t **head)
 {
 	list_t *newhead = NULL;
 	list_t *this = *head;
@@ -130,10 +130,10 @@ reverse_single_linked_list(list_t **head)
 		 *          2.       prevNode = thisNode;
 		 *          3.       thisNode = thisNode->next;
 		 */
-		list_t *t = this->next;
-		this->next = prev;
-		prev = this;
-		this = t;
+		list_t *next = this->next; /* a. save the next */
+		this->next = prev;         /* b. reverse */
+		prev = this;               /* c. move prev forward */
+		this = next;               /* d. move this forward */
 	}
 
 	*head = newhead;
@@ -141,7 +141,7 @@ reverse_single_linked_list(list_t **head)
 #endif
 
 /*
- * join single linked list L2 to L1
+ * join singly linked list L2 to L1
  */
 static void
 join(list_t *l1, list_t *l2)
@@ -155,7 +155,7 @@ join(list_t *l1, list_t *l2)
 }
 
 /*
- * cut single linked list at Kth position, K = 0, 1, ...
+ * cut singly linked list at Kth position, K = 0, 1, ...
  */
 static list_t *
 cut(list_t *head, int k)
@@ -197,7 +197,7 @@ reverse(list_t **head, int k)
 		}
 
 		list_t *nexthead = cut(headp, k-1);
-		reverse_single_linked_list(&headp);
+		reverse_singly_linked_list(&headp);
 		aux[index++] = headp;
 
 		headp = nexthead;

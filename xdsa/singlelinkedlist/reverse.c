@@ -3,7 +3,7 @@
  */
 
 /**
- * This small program is to reverse every k nodes of a single linked list.
+ * This small program is to reverse every k nodes of a singly linked list.
  * Note if the list size is not a multiple of k, then leave the remainder
  * nodes as is.
  *
@@ -138,13 +138,13 @@ main(int argc, char *argv[])
 	argv += 2;
 
 	list_t *head = NULL;
-	init(&head, argv, argc); /* create single linked list */
+	init(&head, argv, argc); /* create singly linked list */
 
 	show(head);
 	reverse(&head, k);
 	show(head);
 
-	fini(head); /* destroy single linked list */
+	fini(head); /* destroy singly linked list */
 
 	return 0;
 }

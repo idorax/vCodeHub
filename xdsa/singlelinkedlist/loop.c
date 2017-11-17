@@ -3,7 +3,7 @@
  */
 
 /**
- * This small program is to get the first node of two single linked lists
+ * This small program is to get the first node of two singly linked lists
  * if they converge. If not found, return NULL.
  */
 

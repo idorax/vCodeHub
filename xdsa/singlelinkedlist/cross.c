@@ -3,7 +3,7 @@
  */
 
 /**
- * This small program is to get the first node of two single linked lists
+ * This small program is to get the first node of two singly linked lists
  * if they converge. If not found, return NULL.
  */
 
@@ -92,7 +92,7 @@ crpt_init(list_t *head1, list_t *head2, int index)
 #ifdef _XXX_USE_REVERSE_
 
 /**
- * Reverse a single linked list
+ * Reverse a singly linked list
  */
 static void
 reverse(list_t **head)
@@ -116,10 +116,10 @@ reverse(list_t **head)
 		 *          2.       prevNode = thisNode;
 		 *          3.       thisNode = thisNode->next;
 		 */
-		list_t *next = this->next;
-		this->next = prev;
-		prev = this;
-		this = next;
+		list_t *next = this->next; /* a. save the next */
+		this->next = prev;         /* b. reverse */
+		prev = this;               /* c. move prev forward */
+		this = next;               /* d. move this forward */
 	}
 
 	*head = newhead;

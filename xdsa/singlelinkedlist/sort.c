@@ -3,9 +3,9 @@
  */
 
 /*
- * Single Linked List Sorting
+ * Singly Linked List Sorting
  *
- *	1. convert a[] to a single linked list L
+ *	1. convert a[] to a singly linked list L
  *	   e.g. int a[] = {9, 8, 7, 7}
  *	   ==>        L = 9->8->7->7->NULL
  *	2. sort list L via straight insertion sorting
@@ -135,7 +135,7 @@ list_sort(list_t **head)
 	if (head == NULL || *head == NULL)
 		return;
 
-	/* get total number of nodes in the single linked list */
+	/* get total number of nodes in the singly linked list */
 	int len = 0;
 	for (list_t *p = *head; p != NULL; p = p->next)
 		len++;
@@ -153,7 +153,7 @@ list_sort(list_t **head)
 	/* sort aux[] via straight insertion sorting algorithm */
 	sisort(aux, len);
 
-	/* rebuild the single linked list by walking aux[] */
+	/* rebuild the singly linked list by walking aux[] */
 	*head = aux[0];
 	for (int i = 0; i < len - 1; i++)
 		aux[i]->next = aux[i+1];

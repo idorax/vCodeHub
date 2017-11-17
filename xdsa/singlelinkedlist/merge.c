@@ -3,7 +3,7 @@
  */
 
 /**
- * This small program is to merge two sorted single linked lists.
+ * This small program is to merge two sorted singly linked lists.
  *
  * Example:
  *        Input:  (a) 1->3->5->7->NULL
@@ -63,7 +63,7 @@ init(list_t **head, int *a, int n)
 }
 
 /**
- * Insertion Sort on a Single Linked List : insert a node to the sorted list
+ * Insertion Sort on a Singly Linked List : insert a node to the sorted list
  */
 static void
 list_insert(list_t **head, list_t *node)
@@ -102,7 +102,7 @@ list_insert(list_t **head, list_t *node)
 }
 
 /**
- * Insertion Sort on a Single Linked List
+ * Insertion Sort on a Singly Linked List
  */
 static void
 list_sort(list_t **head)
@@ -127,7 +127,7 @@ list_sort(list_t **head)
 #ifdef _XXX_LIST_INSERT_
 
 /**
- * Merge two sorted single linked lists (dst and src).
+ * Merge two sorted singly linked lists (dst and src).
  */
 list_t *
 merge(list_t *head1, list_t *head2)
