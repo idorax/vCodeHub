@@ -129,28 +129,87 @@ int get_loop_length(list_t *head)
 {
 	list_t *fast = head;
 	list_t *slow = head;
-	list_t *joint = NULL;
+	list_t *node = NULL;
 
-	/* get a joint */
+	/* get a node in the loop */
 	while (fast != NULL && fast->next != NULL) {
 		fast = fast->next->next;
 		slow = slow->next;
 
 		if (fast == slow) {
-			joint = slow;
+			node = slow;
 			break;
 		}
 	}
 
 	/* no loop found hence the length should be zero */
-	if (joint == NULL)
+	if (node == NULL)
 		return 0;
 
 	/* now walk again to get the length of the loop */
 	int len = 1;
-	for (list_t *p = joint->next; p != joint; p = p->next)
+	for (list_t *p = node->next; p != node; p = p->next)
 		len++;
 	return len;
+}
+
+/**
+ * Get the joint if a singly linked list has a loop
+ */
+list_t *
+get_loop_joint(list_t *head)
+{
+	list_t *fast = head;
+	list_t *slow = head;
+	list_t *node = NULL;
+
+	/* get a node in the loop */
+	while (fast != NULL && fast->next != NULL) {
+		fast = fast->next->next;
+		slow = slow->next;
+
+		if (fast == slow) {
+			node = slow;
+			break;
+		}
+	}
+
+	/* no loop found hence the joint should be NULL */
+	if (node == NULL)
+		return NULL;
+
+	/*
+	 * The slow walks the loop from the node, and let the fast walk the
+	 * list from its head. They should meet at the joint.
+	 *
+	 *     Head        Joint
+	 *     |           |
+	 *     O-->O-->O-->O<--O<--O
+	 *                 |       ^
+	 *                 V       |
+	 *                 O-->O-->O
+	 *                          \
+	 *                           Node
+	 *
+	 *     x : The length from Head  to Joint
+	 *     y1: The length from Joint to Node
+	 *     y2: The length from Node  to Joint
+	 *
+	 *     Total steps of the slow walked: x + y1
+	 *     Total steps of the fast walked: x + y1 + y2 + y1
+	 *     Note the fast and the slow have the same times to move,
+	 *     So                              x + y1 == (x + y1 + y2 + y1) / 2
+	 *                                 ==> 2x + 2y1 == x + 2y1 + y2
+	 *                                 ==> x == y2
+	 */
+	fast = head;
+	slow = node;
+	while (fast != slow) {
+		fast = fast->next;
+		slow = slow->next;
+	}
+
+	return slow;
 }
 
 /**
@@ -225,11 +284,15 @@ main(int argc, char *argv[])
 	list_t *tail = NULL;
 	loop_init(head, idx, &tail);
 
-	if (is_loop(head))
-		printf("LOOP FOUND, and the length of loop is %d\n",
-		       get_loop_length(head));
-	else
+	if (is_loop(head)) {
+		int len = get_loop_length(head);
+		list_t *joint = get_loop_joint(head);
+		printf("LOOP FOUND\n");
+		printf("The length of loop is %d\n", len);
+		printf("The first joint is %d (%p)\n", joint->data, joint);
+	} else {
 		fprintf(stderr, "LOOP NOT FOUND\n");
+	}
 
 	/* destroy the loop */
 	loop_fini(tail);
