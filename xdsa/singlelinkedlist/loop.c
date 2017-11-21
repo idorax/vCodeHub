@@ -3,8 +3,7 @@
  */
 
 /**
- * This small program is to get the first node of two singly linked lists
- * if they converge. If not found, return NULL.
+ * This small program is to detect a singly linked list has a loop or not.
  */
 
 #include <stdio.h>
@@ -60,9 +59,40 @@ init(list_t **head, int *a, int n)
 }
 
 static void
-loop_init(list_t *head, int index)
+loop_init(list_t *head, int index, list_t **tail)
 {
-	/* XXX: TBD */
+	if (head == NULL) {
+		*tail = NULL;
+		return;
+	}
+
+	/* get the tail node */
+	list_t *p = head;
+	while (p->next != NULL)
+		p = p->next;
+	*tail = p;
+
+	/*
+	 * find the node by index ([1..N]) to init the loop
+	 *
+	 * NOTE: If index == 0, don't init the loop
+	 *       If index > length of the list, don't init the loop either
+	 */
+	int cnt = index;
+	list_t *q = head;
+	while (--cnt > 0 && q != NULL)
+		q = q->next;
+
+	/* now init the loop */
+	if (cnt == 0)
+		(*tail)->next = q;
+}
+
+static void
+loop_fini(list_t *tail)
+{
+	if (tail != NULL)
+		tail->next = NULL;
 }
 
 /**
@@ -160,8 +190,17 @@ main(int argc, char *argv[])
 
 	show(head);
 
-	/* XXX: create a loop */
-	loop_init(head, idx);
+	/* create a loop */
+	list_t *tail = NULL;
+	loop_init(head, idx, &tail);
+
+	if (is_loop(head))
+		printf("LOOP\n");
+	else
+		fprintf(stderr, "LOOP NOT FOUND\n");
+
+	/* destroy the loop */
+	loop_fini(tail);
 
 	fini(head);
 
