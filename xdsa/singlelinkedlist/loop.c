@@ -213,6 +213,21 @@ get_loop_joint(list_t *head)
 }
 
 /**
+ * Get the total length of a singly linked list even though it has a loop
+ */
+int get_total_length(list_t *head)
+{
+	int len = get_loop_length(head);
+
+	list_t *joint =	(len != 0) ? get_loop_joint(head) : NULL;
+
+	for (list_t *p = head; p != joint; p = p->next)
+		len++;
+
+	return len;
+}
+
+/**
  * Covert string (its delimiter is ',') to an array of int, which is similar to
  * strtok_r(). Note that the caller must free the memory of the array. e.g.
  *     char *s = "1,2,3,4,5,6"
@@ -289,10 +304,11 @@ main(int argc, char *argv[])
 		list_t *joint = get_loop_joint(head);
 		printf("LOOP FOUND\n");
 		printf("The length of loop is %d\n", len);
-		printf("The first joint is %d (%p)\n", joint->data, joint);
+		printf("The first joint    is %d (%p)\n", joint->data, joint);
 	} else {
 		fprintf(stderr, "LOOP NOT FOUND\n");
 	}
+	printf("The total length   is %d\n", get_total_length(head));
 
 	/* destroy the loop */
 	loop_fini(tail);
