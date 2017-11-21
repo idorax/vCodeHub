@@ -129,9 +129,9 @@ int get_loop_length(list_t *head)
 {
 	list_t *fast = head;
 	list_t *slow = head;
+	list_t *joint = NULL;
 
 	/* get a joint */
-	list_t *joint = NULL;
 	while (fast != NULL && fast->next != NULL) {
 		fast = fast->next->next;
 		slow = slow->next;
@@ -147,24 +147,9 @@ int get_loop_length(list_t *head)
 		return 0;
 
 	/* now walk again to get the length of the loop */
-	int len = 0;
-	fast = slow = joint;
-	while (fast != NULL && fast->next != NULL) {
-		fast = fast->next->next;
-		slow = slow->next;
-
-		/*
-		 * If the slow walks N steps, and the fast must have walked 2N
-		 * steps. Once the fast catches up with the slow again, we can
-		 * get the length, which should be 2N - N = N
-		 */
+	int len = 1;
+	for (list_t *p = joint->next; p != joint; p = p->next)
 		len++;
-
-		/* abort as the fast meets the slow again */
-		if (fast == slow)
-			break;
-	}
-
 	return len;
 }
 
