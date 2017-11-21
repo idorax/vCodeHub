@@ -123,6 +123,52 @@ bool is_loop(list_t *head)
 }
 
 /**
+ * Get the length of the loop if a singly linked list has a loop
+ */
+int get_loop_length(list_t *head)
+{
+	list_t *fast = head;
+	list_t *slow = head;
+
+	/* get a joint */
+	list_t *joint = NULL;
+	while (fast != NULL && fast->next != NULL) {
+		fast = fast->next->next;
+		slow = slow->next;
+
+		if (fast == slow) {
+			joint = slow;
+			break;
+		}
+	}
+
+	/* no loop found hence the length should be zero */
+	if (joint == NULL)
+		return 0;
+
+	/* now walk again to get the length of the loop */
+	int len = 0;
+	fast = slow = joint;
+	while (fast != NULL && fast->next != NULL) {
+		fast = fast->next->next;
+		slow = slow->next;
+
+		/*
+		 * If the slow walks N steps, and the fast must have walked 2N
+		 * steps. Once the fast catches up with the slow again, we can
+		 * get the length, which should be 2N - N = N
+		 */
+		len++;
+
+		/* abort as the fast meets the slow again */
+		if (fast == slow)
+			break;
+	}
+
+	return len;
+}
+
+/**
  * Covert string (its delimiter is ',') to an array of int, which is similar to
  * strtok_r(). Note that the caller must free the memory of the array. e.g.
  *     char *s = "1,2,3,4,5,6"
@@ -195,7 +241,8 @@ main(int argc, char *argv[])
 	loop_init(head, idx, &tail);
 
 	if (is_loop(head))
-		printf("LOOP\n");
+		printf("LOOP FOUND, and the length of loop is %d\n",
+		       get_loop_length(head));
 	else
 		fprintf(stderr, "LOOP NOT FOUND\n");
 
