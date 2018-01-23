@@ -1,9 +1,9 @@
 #
-# Copyright (C) 2017, Vector Li (idorax@126.com). All rights reserved.
+# Copyright (C) 2017, 2018, Vector Li (idorax@126.com). All rights reserved.
 #
 
 CC	= gcc
-CFLAGS	= -g -Wall -std=c99 -m32
+CFLAGS	= -g -Wall -std=c99
 INCS	= -I../../generic/
 
 all: foo data test
