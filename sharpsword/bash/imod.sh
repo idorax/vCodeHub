@@ -1,40 +1,61 @@
-#!/usr/bin/bash
+#!/bin/bash
 #
-# Copyright (C) 2014, 2017, Vector Li (idorax@126.com). All rights reserved.
-#
-
-#
-# This is script is to delete all blank lines
-# endswith spaces (' ' or '\t' mixed)
-# it is the same as vim :%s/\s\+$//g
+# Copyright (C) 2014, 2018, Vector Li (idorax@126.com). All rights reserved.
 #
 
 #
-# Example: on Solaris
-#
-# 1. delete all blank lines including multiple ' ' or '\t' mixed
-# 	gsed -i "/^[[:space:]]*$/d" <file>
-#
-# 2. delete all blank lines
-# 	gsed -i "/^$/d" <file>
-#
-# 3. delete all spaces endswith of lines
-# 	gsed -i "s/[[:space:]]*$//g" <file>
-#     = vim :%s/\s\+$//g
+# This is script is to delete all blank lines endswith
+# spaces (' ' or '\t' mixed)
+# o sed: sed -i "s/[[:space:]]*$//g" <file>
+# o vim: %s/\s\+$//g
 #
 
 NAME=$(basename $0)
 
-if [[ $(uname) == SunOS ]]; then
-	S_CAT=gcat
-	S_SED=gsed
-else # Linux
-	S_CAT=cat
-	S_SED=sed
-fi
+S_CAT=cat
+S_SED=sed
 
 dir2backup=/tmp/.$NAME/$(date +"%m%d")
 [[ ! -d $dir2backup ]] && mkdir -p $dir2backup
+
+f_dos2unix=/tmp/.$NAME/dos2unix
+cat > $f_dos2unix << EOF
+#!/usr/bin/python
+
+import sys
+
+def dos2unix(fd):
+	for line in fd.readlines():
+		line = line.replace('\r\n', '\n')
+		if not line.endswith('\n'):
+			line += '\n'
+		sys.stdout.write(line)
+
+def main(argc, argv):
+	if argc != 2:
+		sys.stderr.write("Usage: {0} <file>\n".format(argv[0]))
+		return 1
+
+	filename = argv[1]
+	try:
+		fd = open(filename, "rb")
+	except IOError, e:
+		return 1
+
+	dos2unix(fd)
+
+	fd.close()
+
+	return 0
+
+if __name__ == '__main__':
+	argv = sys.argv
+	argc = len(argv)
+	sys.exit(main(argc, argv))
+
+EOF
+
+chmod 0555 $f_dos2unix
 
 for file in $@; do
 	[[ ! -f $file ]] && continue
@@ -47,7 +68,7 @@ for file in $@; do
 	printf "    1# backup $file to $fbk\n"
 	cp $file $fbk
 	printf "     # dos2unix $file\n"
-	dos2unix $fbk > $file
+	$f_dos2unix $fbk > $file
 	printf "    2# save $file via $S_CAT -A as $fr1\n"
 	$S_CAT -A $file > $fr1
 	printf "    3# delete lines endswith spaces (' ' or '\t' mixed)\n"
@@ -65,4 +86,5 @@ for file in $@; do
 	printf "\n"
 done
 
+rm -f $f_dos2unix
 exit 0
