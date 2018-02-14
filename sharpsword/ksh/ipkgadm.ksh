@@ -35,6 +35,7 @@ rpm_pkglist+=" gcc gcc-c++"	# gcc, g++
 rpm_pkglist+=" gdb"		# gdb
 rpm_pkglist+=" git"		# git
 rpm_pkglist+=" tree"		# tree, very nice
+rpm_pkglist+=" screen"		# screen
 rpm_pkglist+=" stardict"	# start dict
 rpm_pkglist+=" pidgin"		# For IRC
 rpm_pkglist+=" meld"		# Visual diff
@@ -139,22 +140,22 @@ function str2lower
 
 function msg_pass
 {
-	str2cyan "[ PASS ] $*"
+	print "[ $(str2cyan PASS) ] $*"
 }
 
 function msg_info
 {
-	str2green "[ INFO ] $*"
+	print "[ $(str2green INFO) ] $*"
 }
 
 function msg_fail
 {
-	str2red "[ FAIL ] $*"
+	print "[ $(str2red FAIL) ] $*"
 }
 
 function msg_fatal
 {
-	str2red "[ FATAL ] $*"
+	print "[ $(str2red FATAL) ] $*"
 }
 
 function msg_highlight
