@@ -1,27 +1,17 @@
 #
-# Copyright (C) 2012, 2017, Vector Li (idorax@126.com). All rights reserved.
+# Copyright (C) 2012, 2018, Vector Li (huanli@redhat.com). All rights reserved.
 #
 
 TARGETS	= icodeadm \
 	  ipyman \
 	  ibase64 \
-	  dos2unix
+	  dos2unix \
+	  jsonfmt
+
 
 all: $(TARGETS)
 
-icodeadm: icodeadm.py
-	cp $< $@
-	chmod +x $@
-
-ipyman: ipyman.py
-	cp $< $@
-	chmod +x $@
-
-ibase64: ibase64.py
-	cp $< $@
-	chmod +x $@
-
-dos2unix: dos2unix.py
+%: %.py
 	cp $< $@
 	chmod +x $@
 
