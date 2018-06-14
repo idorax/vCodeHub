@@ -1,17 +1,14 @@
 #
-# Copyright (C) 2013, Vector Li (idorax@126.com)
+# Copyright (C) 2013, 2018, Vector Li (huanli@redhat.com). All rights reserved.
 #
 
 TARGET	= vlogin \
-	  vsu
+	  vsu \
+	  vopenvpn
 
 all: $(TARGET)
 
-vlogin: vlogin.exp
-	cp $< $@
-	chmod +x $@
-
-vsu: vsu.exp
+%: %.exp
 	cp $< $@
 	chmod +x $@
 

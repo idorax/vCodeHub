@@ -1,0 +1,233 @@
+#!/usr/bin/expect
+#
+# Copyright (C) 2018, Vector Li (huanli@redhat.com). All rights reserved.
+#
+
+#
+# Start VPN client via command 'openvpn' to connect the SWAN of RedHat as
+# terminal is always cool to programmers, and GUI is the last choice :-)
+#
+# NOTE: Once the VPN connection is intialized successfully, your terminal
+#       will output this line:
+#           Initialization Sequence Completed
+#       else, you will see:
+#           AUTH: Received control message: AUTH_FAILED
+#
+# Version:     1.1
+# Create:      06/13/2015
+# Last update: 06/14/2015
+#
+
+#
+# global variables can be re-defined by user
+#
+set DEF_TIMEOUT 60
+
+#
+# global variables shared by procs
+#
+set ENV_ISATTY ISATTY
+set DEF_ISATTY yes
+set B_TRUE 1
+set B_FALSE 0
+set ENV_VPN_PASSWORD_HOOK VPN_PASSWORD_HOOK ;# the env should be set by user
+                                            ;# e.g. VPN_PASSWORD_HOOK=/tmp/foo
+set ENV_VPN_CONF VPN_CONF ;# the env should be set by user
+                          ;# e.g. VPN_CONF=/etc/openvpn/foo.conf
+
+#
+# get env value, if not found, return ""
+#
+proc getenv {name} {
+	if {[catch {set val $::env($name)}]} {
+		set val ""
+	}
+	return $val
+}
+
+#
+# set env, the same as export in bash/ksh
+#
+proc setenv {name value} {
+	array set ::env [list $name $value]
+}
+
+#
+# bogus isatty as *I have no idea how to detect isatty() in Tcl yet*
+#
+proc isatty {} {
+	set s [string toupper [getenv $::ENV_ISATTY]]
+	if {$s == "YES"} {
+		return $::B_TRUE
+	}
+	return $::B_FALSE
+}
+
+#
+# str2<color> : {gray, red, green, yellow, blue, magenta, cyan, white}
+#
+proc str2gray {s} {
+	if {[isatty]} {
+		return "\033\[1;30m$s\033\[0m"
+	}
+	return $s
+}
+proc str2red {s} {
+	if {[isatty]} {
+		return "\033\[1;31m$s\033\[0m"
+	}
+	return $s
+}
+
+proc str2green {s} {
+	if {[isatty]} {
+		return "\033\[1;32m$s\033\[0m"
+	}
+	return $s
+}
+proc str2yellow {s} {
+	if {[isatty]} {
+		return "\033\[1;33m$s\033\[0m"
+	}
+	return $s
+}
+proc str2blue {s} {
+	if {[isatty]} {
+		return "\033\[1;34m$s\033\[0m"
+	}
+	return $s
+}
+proc str2magenta {s} {
+	if {[isatty]} {
+		return "\033\[1;35m$s\033\[0m"
+	}
+	return $s
+}
+proc str2cyan {s} {
+	if {[isatty]} {
+		return "\033\[1;36m$s\033\[0m"
+	}
+	return $s
+}
+proc str2white {s} {
+	if {[isatty]} {
+		return "\033\[1;37m$s\033\[0m"
+	}
+	return $s
+}
+
+#
+# msg_* : {fail, pass, warn, info}
+#
+proc msg_fail {s} { puts stderr [str2red     "\[ FAIL \] $s"]; }
+proc msg_pass {s} { puts stdout [str2cyan    "\[ PASS \] $s"]; }
+proc msg_warn {s} { puts stderr [str2magenta "\[ WARN \] $s"]; }
+proc msg_info {s} { puts stderr [str2green   "\[ INFO \] $s"]; }
+
+proc fatal {s} {
+	msg_fail $s
+	exit 1
+}
+
+#
+# get the default user
+#
+proc get_default_user {} {
+	set user [exec bash -c "id -un"]
+	if {$user == "root"} {
+		fatal "Oops, regular user should be used instead of root"
+	}
+	return $user
+}
+
+#
+# get the default password
+#
+proc get_default_password {} {
+	set env_key $::ENV_VPN_PASSWORD_HOOK
+	set env_val [getenv $env_key]
+	if {$env_val == ""} {
+		fatal "Oops, env $env_key not found"
+	}
+	set hook [exec bash -c "$env_val"]
+	set password [exec bash -c "eval $hook"]
+	return $password
+}
+
+#
+# get the VPN configuration file
+#
+proc get_vpn_conf {} {
+	set env_key $::ENV_VPN_CONF
+	set env_val [getenv $env_key]
+	if {$env_val == ""} {
+		fatal "Oops env $env_key not found"
+	}
+	return $env_val
+}
+
+proc usage {p} {
+	puts stderr "Usage: $p <token>"
+	puts stderr "  e.g. $p 123456"
+	puts stderr ""
+	set s1 [str2cyan $::ENV_VPN_PASSWORD_HOOK]
+	set s2 [str2gray /tmp/foo]
+	set s3 [str2cyan $::ENV_VPN_CONF]
+	set s4 [str2gray /etc/openvpn/foo.conf]
+	puts stderr "NOTE: 1. token is from the app FreeOTP on your cell phone"
+	puts stderr "      2. env $s1 and $s3 must be set, e.g."
+	puts stderr "         export $s1=$s2"
+	puts stderr "         export $s3=$s4"
+}
+
+# init default isatty if user does not set it
+if {[getenv $ENV_ISATTY] == ""} {
+	setenv $ENV_ISATTY $DEF_ISATTY
+}
+
+set argc [llength $argv]
+if {$argc != 1} {
+	usage $argv0
+	exit 1
+}
+
+#set vpn_user     [lindex $argv 0]
+#set vpn_password [lindex $argv 1]
+set vpn_user     [get_default_user]
+set vpn_password [get_default_password]
+set vpn_token    [lindex $argv 0]
+set vpn_password $vpn_password$vpn_token ;# PASSWORD will be password + token
+
+set timeout $DEF_TIMEOUT
+
+set vpn_conf [get_vpn_conf]
+spawn sudo openvpn --config $vpn_conf
+expect {
+	-nocase "Username:*" {
+		msg_info "#1 send username [str2yellow $vpn_user]"
+		sleep 0.5
+		send "$vpn_user\r"
+	}
+
+	timeout {
+		msg_fail "*** timeout #2"
+		exit 1
+	}
+}
+
+expect {
+	-nocase "Password:*" {
+		set svp [string repeat * [string length $vpn_password]]
+		msg_info "#2 send password [str2yellow $svp]"
+		sleep 0.5
+		send "$vpn_password\r"
+	}
+
+	timeout {
+		msg_fail "*** timeout #3"
+		exit 1
+	}
+}
+
+msg_info "#3 interact"
+interact
