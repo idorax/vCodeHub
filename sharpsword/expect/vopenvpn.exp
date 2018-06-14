@@ -7,13 +7,13 @@
 # Start VPN client via command 'openvpn' to connect the SWAN of RedHat as
 # terminal is always cool to programmers, and GUI is the last choice :-)
 #
-# NOTE: Once the VPN connection is intialized successfully, your terminal
+# NOTE: Once the VPN connection is initialized successfully, your terminal
 #       will output this line:
 #           Initialization Sequence Completed
 #       else, you will see:
 #           AUTH: Received control message: AUTH_FAILED
 #
-# Version:     1.1
+# Version:     1.2
 # Create:      06/13/2015
 # Last update: 06/14/2015
 #
@@ -72,6 +72,7 @@ proc str2gray {s} {
 	}
 	return $s
 }
+
 proc str2red {s} {
 	if {[isatty]} {
 		return "\033\[1;31m$s\033\[0m"
@@ -85,30 +86,35 @@ proc str2green {s} {
 	}
 	return $s
 }
+
 proc str2yellow {s} {
 	if {[isatty]} {
 		return "\033\[1;33m$s\033\[0m"
 	}
 	return $s
 }
+
 proc str2blue {s} {
 	if {[isatty]} {
 		return "\033\[1;34m$s\033\[0m"
 	}
 	return $s
 }
+
 proc str2magenta {s} {
 	if {[isatty]} {
 		return "\033\[1;35m$s\033\[0m"
 	}
 	return $s
 }
+
 proc str2cyan {s} {
 	if {[isatty]} {
 		return "\033\[1;36m$s\033\[0m"
 	}
 	return $s
 }
+
 proc str2white {s} {
 	if {[isatty]} {
 		return "\033\[1;37m$s\033\[0m"
@@ -175,7 +181,9 @@ proc usage {p} {
 	set s3 [str2cyan $::ENV_VPN_CONF]
 	set s4 [str2gray /etc/openvpn/foo.conf]
 	puts stderr "NOTE: 1. token is from the app FreeOTP on your cell phone"
-	puts stderr "      2. env $s1 and $s3 must be set, e.g."
+	puts stderr "      2. make sure your user name can sudo with passwordless, e.g."
+	puts stderr "         $ sudo id -un # should output 'root' without inputting password"
+	puts stderr "      3. env $s1 and $s3 must be set, e.g."
 	puts stderr "         export $s1=$s2"
 	puts stderr "         export $s3=$s4"
 }
@@ -191,8 +199,6 @@ if {$argc != 1} {
 	exit 1
 }
 
-#set vpn_user     [lindex $argv 0]
-#set vpn_password [lindex $argv 1]
 set vpn_user     [get_default_user]
 set vpn_password [get_default_password]
 set vpn_token    [lindex $argv 0]
