@@ -7,7 +7,9 @@ TARGETS	= imod \
 	  vmw \
 	  ethinfo \
 	  lsgen \
-	  github_sync
+	  github_sync \
+	  autovpn
+
 
 all: $(TARGETS)
 
