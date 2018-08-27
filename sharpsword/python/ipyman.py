@@ -99,11 +99,11 @@ def usage(s):
         sys.stderr.write("       %s -d %s # print Cstr.__doc__\n" % (s, s1))
         sys.stderr.write("       %s -h %s # help(Cstr)\n" % (s, s1))
 
-	s2 = Cstr("this", CstrCYAN);
+        s2 = Cstr("this", CstrCYAN);
         sys.stderr.write("\n")
         sys.stderr.write("       %s\n" % \
-			(Cstr("-- The Zen of Python -- : " + \
-			"python -c \"import this\"", CstrCYAN)))
+                         (Cstr("-- The Zen of Python -- : " + \
+                         "python -c \"import this\"", CstrCYAN)))
         sys.stderr.write("       %s -d %s # print this.__doc__\n" % (s, s2))
 
 def main(argc, argv):
@@ -201,6 +201,4 @@ def main(argc, argv):
         return 0
 
 if __name__ == '__main__':
-        argv = sys.argv
-        argc = len(argv)
-        sys.exit(main(argc, argv))
+        sys.exit(main(len(sys.argv), sys.argv))
