@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2017, 2018, Vector Li (idorax@126.com). All rights reserved.
+# Copyright (C) 2017, 2020, Vector Li (idorax@126.com). All rights reserved.
 #
 
 TARGETS	= imod \
@@ -8,7 +8,8 @@ TARGETS	= imod \
 	  ethinfo \
 	  lsgen \
 	  github_sync \
-	  autovpn
+	  autovpn \
+	  vminfo
 
 
 all: $(TARGETS)
